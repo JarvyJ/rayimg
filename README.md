@@ -1,6 +1,6 @@
 # rayimg
 
-rayimg is a lightweight image viewer designed to run on Raspberry Pis. It has a slideshow mode and displays via the Direct Rendering Manager (DRM) on a Raspberry Pi, so X/Wayland are not needed - this makes it nice to run on a lightweight OS! Check out my other project [PiSlide OS]() if interested. It supports many image formats, including more modern ones: JPG, PNG, GIF (animated!), WEBP, AVIF, JXL, HEIF, BMP, TIFF, and QOI.
+rayimg is a lightweight image viewer designed to run on Raspberry Pis. It has a slideshow mode and displays via the Direct Rendering Manager (DRM) on a Raspberry Pi, so X/Wayland are not needed - this makes it nice to run on a lightweight OS! Check out my other project [PiSlide OS](https://github.com/JarvyJ/pislide-os) if interested. It supports many image formats, including more modern ones: JPG, PNG, GIF (animated!), WEBP, AVIF, JXL, HEIF, BMP, TIFF, and QOI.
 
 It has been built and tested on a Pi 0W, Pi 3, and Pi 4.
 
@@ -43,7 +43,3 @@ go build -tags drm github.com/JarvyJ/rayimg/cmd/rayimg
 ```
 
 I've done all of my testing on Linux and Raspberry Pis, so I can't quite speak to building it on other platforms.
-
-## Current Issues
--[] Animated Gifs are a bit slow on a Pi 0, until all frames have been processed once
--[] Need to investigate why images larger than 1920x1080 sometimes work on Raspberry Pis
