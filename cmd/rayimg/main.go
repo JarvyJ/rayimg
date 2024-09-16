@@ -78,16 +78,12 @@ func main() {
 	listOfFiles := fileloader.LoadFiles(args)
 	imageLoader := imageloader.New(listOfFiles)
 
-	screenWidth := int32(1920)
-	screenHeight := int32(1080)
+	screenWidth, screenHeight := getScreenResolution()
 	fontSize := 72
 
 	rl.SetTraceLogLevel(rl.LogWarning)
 	rl.SetConfigFlags(rl.FlagVsyncHint)
 	rl.InitWindow(screenWidth, screenHeight, "rayimg - Image Viewer")
-
-	screenWidth = int32(rl.GetScreenWidth())
-	screenHeight = int32(rl.GetScreenHeight())
 
 	font := rl.LoadFontEx("NotoSansDisplay-VariableFont_wdth,wght.ttf", int32(fontSize), nil)
 	fontPosition := rl.NewVector2(20, float32(screenHeight)-float32(fontSize)-10)
