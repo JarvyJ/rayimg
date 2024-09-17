@@ -75,11 +75,11 @@ func main() {
 		panic("--duration must be positive")
 	}
 
-	listOfFiles := fileloader.LoadFiles(args)
-	imageLoader := imageloader.New(listOfFiles)
-
 	screenWidth, screenHeight := getScreenResolution()
 	fontSize := 72
+
+	listOfFiles := fileloader.LoadFiles(args)
+	imageLoader := imageloader.New(listOfFiles, screenWidth, screenHeight)
 
 	rl.SetTraceLogLevel(rl.LogWarning)
 	rl.SetConfigFlags(rl.FlagVsyncHint)
