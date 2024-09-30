@@ -55,12 +55,14 @@ func main() {
 
 	args.Path = flag.Args()
 
+	arguments.LoadIniFile(&args)
+
 	switch args.Display {
 	case "none":
 	case "filename":
 	case "caption":
 	default:
-		panic("The only --text-display options are 'none', 'filename', or 'caption'")
+		panic("The only --display options are 'none', 'filename', or 'caption'")
 	}
 
 	if args.TransitionDuration > float64(0) && args.Duration <= 0 {
@@ -75,19 +77,15 @@ func main() {
 		panic("--duration must be positive")
 	}
 
-	listOfFiles := fileloader.LoadFiles(args)
-	imageLoader := imageloader.New(listOfFiles)
-
-	screenWidth := int32(1920)
-	screenHeight := int32(1080)
+	screenWidth, screenHeight := getScreenResolution()
 	fontSize := 72
+
+	listOfFiles := fileloader.LoadFiles(args)
+	imageLoader := imageloader.New(listOfFiles, screenWidth, screenHeight)
 
 	rl.SetTraceLogLevel(rl.LogWarning)
 	rl.SetConfigFlags(rl.FlagVsyncHint)
 	rl.InitWindow(screenWidth, screenHeight, "rayimg - Image Viewer")
-
-	screenWidth = int32(rl.GetScreenWidth())
-	screenHeight = int32(rl.GetScreenHeight())
 
 	font := rl.LoadFontEx("NotoSansDisplay-VariableFont_wdth,wght.ttf", int32(fontSize), nil)
 	fontPosition := rl.NewVector2(20, float32(screenHeight)-float32(fontSize)-10)
