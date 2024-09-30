@@ -39,7 +39,7 @@ rayimg needs the following to build:
 
 From there, it can be built with go:
 ```
-go build -tags drm github.com/JarvyJ/rayimg/cmd/rayimg
+go build github.com/JarvyJ/rayimg/cmd/rayimg
 ```
 
 I've done all of my testing on Linux and Raspberry Pis, so I can't quite speak to building it on other platforms.

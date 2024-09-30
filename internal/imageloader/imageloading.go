@@ -28,18 +28,9 @@ func getImage(imageLoader *ImageLoader, index int) *RayImgImage {
 
 	extension := strings.ToLower(currentFile[strings.LastIndex(currentFile, ".")+1:])
 	imageData.ImageFormat = extension
-	switch strings.ToLower(extension) {
-	case "jpg":
-		fallthrough
-	case "jpeg":
-		fallthrough
-	case "png":
-		fallthrough
-	case "bmp":
-		fallthrough
-	case "qoi":
-		imageData.ImageData = loadRaylib(currentFile, imageLoader.screenWidth, imageLoader.screenHeight)
-	case "gif":
+
+	// GIFs are a little hacked in, but currently modify the imageData fields `ImageData` and `GifData` directly
+	if extension == "gif" {
 		r, err := os.Open(currentFile)
 		if err != nil {
 			fmt.Println("WARNING: Unable to open file", currentFile, ". Skipping for now - error: ", err.Error())
@@ -52,13 +43,12 @@ func getImage(imageLoader *ImageLoader, index int) *RayImgImage {
 		if err != nil {
 			fmt.Println("WARNING: Unable to decode image", currentFile, ". Skipping for now - error: ", err.Error())
 			deleteImageAtIndex(imageLoader, index)
-			return GetCurrentImage(imageLoader)
+			return getImage(imageLoader, index)
 		}
-
-	default:
-		texture, err := loadVips(currentFile, imageLoader.screenWidth, imageLoader.screenHeight)
+	} else {
+		texture, err := loadImageByType(imageLoader, currentFile, extension)
 		if err != nil {
-			fmt.Println("WARNING: Unable to open image", currentFile, ". Skipping for now - error: ", err.Error())
+			fmt.Println(err)
 			deleteImageAtIndex(imageLoader, index)
 			return getImage(imageLoader, index)
 		}
@@ -68,42 +58,77 @@ func getImage(imageLoader *ImageLoader, index int) *RayImgImage {
 	return imageData
 }
 
-func loadRaylib(filename string, maxWidth int32, maxHeight int32) *rl.Texture2D {
-	cachedDirectory, cachedFile, cachedImage := loadCachedImage(filename)
-	if cachedImage != nil {
-		return cachedImage
+func loadImageByType(imageLoader *ImageLoader, currentFile string, extension string) (*rl.Texture2D, error) {
+
+	if imageLoader.cacheImages {
+		_, cacheFile := getCacheFileLocation(imageLoader.cacheDirectory, currentFile)
+		cachedImage := loadCachedImage(cacheFile)
+		if cachedImage != nil {
+			return cachedImage, nil
+		}
 	}
 
+	var image *rl.Image
+	var shouldCache bool
+	var err error
+
+	switch strings.ToLower(extension) {
+	case "jpg":
+		fallthrough
+	case "jpeg":
+		fallthrough
+	case "png":
+		fallthrough
+	case "bmp":
+		fallthrough
+	case "qoi":
+		image, shouldCache = loadRaylib(currentFile, imageLoader)
+		// TODO: get raylib error?
+
+	default:
+		image, shouldCache, err = loadVips(currentFile, imageLoader)
+		if err != nil {
+			errorString := "WARNING: Unable to open image " + currentFile + ". Skipping for now - error: " + err.Error()
+			return nil, errors.New(errorString)
+		}
+	}
+
+	texture := rl.LoadTextureFromImage(image)
+	if shouldCache {
+		cacheDirectory, cacheFile := getCacheFileLocation(imageLoader.cacheDirectory, currentFile)
+		cacheImage(image, cacheDirectory, cacheFile)
+	}
+	return &texture, nil
+}
+
+func loadRaylib(filename string, imageLoader *ImageLoader) (*rl.Image, bool) {
 	image := rl.LoadImage(filename)
 	width := image.Width
 	height := image.Height
+	maxWidth := imageLoader.screenWidth
+	maxHeight := imageLoader.screenHeight
 	if width > maxWidth || height > maxHeight {
 		scale := math.Min(float64(maxWidth)/float64(width), float64(maxHeight)/float64(height))
 		newWidth := math.Min(float64(maxWidth), scale*float64(width))
 		newHeight := math.Min(float64(maxHeight), scale*float64(height))
 		rl.ImageResize(image, int32(newWidth), int32(newHeight))
-
-		cacheImage(cachedDirectory, image, cachedFile)
+		return image, true
 	}
-	texture := rl.LoadTextureFromImage(image)
-	rl.UnloadImage(image)
-	return &texture
+
+	return image, false
 }
 
-func loadVips(filename string, maxWidth int32, maxHeight int32) (*rl.Texture2D, error) {
-	cachedDirectory, cachedFile, cachedImage := loadCachedImage(filename)
-	if cachedImage != nil {
-		return cachedImage, nil
-	}
-
+func loadVips(filename string, imageLoader *ImageLoader) (*rl.Image, bool, error) {
 	imageRef, err := vips.NewImageFromFile(filename)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	// needed for rpi < 4 mostly. Not sure what image size an RPI 4 can technically support
 	width := imageRef.Width()
 	height := imageRef.Height()
+	maxWidth := imageLoader.screenWidth
+	maxHeight := imageLoader.screenHeight
 	saveCachedImage := false
 
 	if width > int(maxWidth) || height > int(maxHeight) {
@@ -116,13 +141,13 @@ func loadVips(filename string, maxWidth int32, maxHeight int32) (*rl.Texture2D, 
 	if imageRef.ColorSpace() != vips.InterpretationSRGB {
 		err = imageRef.ToColorSpace(vips.InterpretationSRGB)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 	}
 
 	imageBytes, err := imageRef.ToBytes()
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	var image *rl.Image
@@ -131,26 +156,25 @@ func loadVips(filename string, maxWidth int32, maxHeight int32) (*rl.Texture2D, 
 		image = rl.NewImage(imageBytes, int32(imageRef.Width()), int32(imageRef.Height()), 1, rl.UncompressedR8g8b8a8)
 	}
 	image = rl.NewImage(imageBytes, int32(imageRef.Width()), int32(imageRef.Height()), 1, rl.UncompressedR8g8b8)
-	if saveCachedImage {
-		cacheImage(cachedDirectory, image, cachedFile)
-	}
-	texture := rl.LoadTextureFromImage(image)
-	// rl.UnloadImage(image) // yeah, we don't need to do this, otherwise we end up trying to free the pointer twice and the app crashes.
-	return &texture, nil
+	return image, saveCachedImage, nil
 }
 
-func loadCachedImage(filename string) (string, string, *rl.Texture2D) {
+func getCacheFileLocation(cacheDirectory string, filename string) (string, string) {
 	originalDirectory := filepath.Dir(filename)
-	cachedDirectory := filepath.Join(".", "test", "resized", originalDirectory)
+	cachedDirectory := filepath.Join(cacheDirectory, originalDirectory)
 	cachedFile := filepath.Join(cachedDirectory, filepath.Base(filename)+".jpg")
-	if _, err := os.Stat(cachedFile); err == nil {
-		texture := rl.LoadTexture(cachedFile)
-		return cachedDirectory, cachedFile, &texture
-	}
-	return cachedDirectory, cachedFile, nil
+	return cachedDirectory, cachedFile
 }
 
-func cacheImage(cachedDirectory string, image *rl.Image, cachedFile string) {
-	os.MkdirAll(cachedDirectory, 0755)
-	rl.ExportImage(*image, cachedFile)
+func loadCachedImage(cachedFilename string) *rl.Texture2D {
+	if _, err := os.Stat(cachedFilename); err == nil {
+		texture := rl.LoadTexture(cachedFilename)
+		return &texture
+	}
+	return nil
+}
+
+func cacheImage(image *rl.Image, cacheDirectory string, cacheFilename string) {
+	os.MkdirAll(cacheDirectory, 0755)
+	rl.ExportImage(*image, cacheFilename)
 }

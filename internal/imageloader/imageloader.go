@@ -13,10 +13,12 @@ import (
 )
 
 type ImageLoader struct {
-	listOfFiles  []string
-	currentIndex int
-	screenHeight int32
-	screenWidth  int32
+	listOfFiles    []string
+	currentIndex   int
+	screenHeight   int32
+	screenWidth    int32
+	cacheImages    bool
+	cacheDirectory string
 }
 
 func New(listOfFiles []string, screenWidth int32, screenHeight int32) ImageLoader {
@@ -25,6 +27,8 @@ func New(listOfFiles []string, screenWidth int32, screenHeight int32) ImageLoade
 	imageLoader.currentIndex = 0
 	imageLoader.screenWidth = screenWidth
 	imageLoader.screenHeight = screenHeight
+
+	imageLoader.cacheDirectory, imageLoader.cacheImages = os.LookupEnv("CACHE_DIR")
 
 	vips.LoggingSettings(nil, vips.LogLevelWarning)
 	vips.Startup(nil)
