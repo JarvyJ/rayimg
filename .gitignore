@@ -1,1 +1,5 @@
 test/
+vendor/github.com/davidbyttow/govips/v2/assets/
+vendor/github.com/davidbyttow/govips/v2/resources/
+vendor/github.com/davidbyttow/govips/v2/examples/
+vendor/**/testdata/**

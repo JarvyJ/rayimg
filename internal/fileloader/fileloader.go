@@ -16,11 +16,16 @@ var validFileExtensions = []string{".jpg", ".png", ".jpeg", ".webp", ".gif", ".a
 var validFileExtensionsSet = make(map[string]bool)
 
 func validFileByExtension(path string) bool {
-	extension := strings.ToLower(path[strings.LastIndex(path, "."):])
-	return validFileExtensionsSet[extension]
+	extensionIndex := strings.LastIndex(path, ".")
+	if extensionIndex > 0 {
+		extension := strings.ToLower(path[extensionIndex:])
+		return validFileExtensionsSet[extension]
+	}
+	return false
 }
 
-func getListOfFiles(path string, recursive bool) []string {
+func getListOfFiles(unknownPath string, recursive bool) []string {
+	path, _ := filepath.Abs(unknownPath)
 	var listOfFiles = []string{}
 
 	fileInfo, err := os.Stat(path)
