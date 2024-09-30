@@ -55,12 +55,14 @@ func main() {
 
 	args.Path = flag.Args()
 
+	arguments.LoadIniFile(&args)
+
 	switch args.Display {
 	case "none":
 	case "filename":
 	case "caption":
 	default:
-		panic("The only --text-display options are 'none', 'filename', or 'caption'")
+		panic("The only --display options are 'none', 'filename', or 'caption'")
 	}
 
 	if args.TransitionDuration > float64(0) && args.Duration <= 0 {

@@ -43,3 +43,6 @@ go build github.com/JarvyJ/rayimg/cmd/rayimg
 ```
 
 I've done all of my testing on Linux and Raspberry Pis, so I can't quite speak to building it on other platforms.
+
+## Why `vendor`?
+Since this project is pulled into a buildroot build and some of the vendor files include `.c` files, we need to include all of them since they don't get pulled in correctly with `go mod vendor`. I'm currently using [vend](https://github.com/nomad-software/vend) for this. If there's a better way, please feel free to open an issue!

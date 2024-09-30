@@ -3,6 +3,7 @@ module github.com/JarvyJ/rayimg
 go 1.22.4
 
 require (
+	github.com/BurntSushi/toml v1.4.0
 	github.com/davidbyttow/govips/v2 v2.15.0
 	github.com/gen2brain/raylib-go/raylib v0.0.0-20240807111636-8861ee437da9
 )
