@@ -2,6 +2,16 @@
 
 package main
 
-func getScreenResolution() (int32, int32) {
-	return 1920, 1080
+import (
+	"fmt"
+	"os"
+)
+
+func getScreenResolution() (int32, int32, error) {
+	return 1920, 1080, nil
+}
+
+func displayError(errorMessage string) {
+	fmt.Println(errorMessage)
+	os.Exit(1)
 }

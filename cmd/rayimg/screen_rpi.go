@@ -4,6 +4,7 @@ package main
 
 import (
 	"errors"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -33,15 +34,30 @@ func parsefbSet(fbsetOutput string) (int32, int32) {
 	return 1920, 1080
 }
 
-func getScreenResolution() (int32, int32) {
+func getScreenResolution() (int32, int32, error) {
 	path, err := getfbsetPath()
 	if err != nil {
-		panic("Unable to find command fbset, can't determine resolution")
+		return _, _, errors.New("Unable to find command fbset, can't determine resolution")
 	}
 	command := exec.Command(path, "-s")
 	fullOuput, err := command.CombinedOutput()
 	if err != nil {
-		panic("Unable to determine resolution from 'fbset -s'. Is there no mode line?")
+		return _, _, errors.New("Unable to determine resolution from 'fbset -s'. Is there no mode line?")
 	}
-	return parsefbSet(string(fullOuput))
+	return parsefbSet(string(fullOuput)), nil
+}
+
+func displayError(errorMessage string) {
+	if !rl.IsWindowReady() {
+		rl.InitWindow(1920, 1080, "rayimg - error")
+	}
+	font := rl.LoadFontEx("NotoSansDisplay-VariableFont_wdth,wght.ttf", int32(64), nil)
+	fontPosition := rl.NewVector2(10, 10)
+	for !rl.WindowShouldClose() {
+		rl.BeginDrawing()
+		rl.ClearBackground(rl.Black)
+		rl.DrawTextEx(font, errorMessage, fontPosition, float32(font.BaseSize), 0, rl.RayWhite)
+		rl.EndDrawing()
+	}
+	os.Exit(1)
 }

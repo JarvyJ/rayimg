@@ -29,6 +29,7 @@ func New(listOfFiles []string, screenWidth int32, screenHeight int32) ImageLoade
 	imageLoader.screenHeight = screenHeight
 
 	imageLoader.cacheDirectory, imageLoader.cacheImages = os.LookupEnv("CACHE_DIR")
+	fmt.Println("cache images", imageLoader.cacheImages)
 
 	vips.LoggingSettings(nil, vips.LogLevelWarning)
 	vips.Startup(nil)
