@@ -1,6 +1,7 @@
 package fileloader
 
 import (
+	"errors"
 	"fmt"
 	"io/fs"
 	"math/rand"
@@ -24,13 +25,13 @@ func validFileByExtension(path string) bool {
 	return false
 }
 
-func getListOfFiles(unknownPath string, recursive bool) []string {
+func getListOfFiles(unknownPath string, recursive bool) ([]string, error) {
 	path, _ := filepath.Abs(unknownPath)
 	var listOfFiles = []string{}
 
 	fileInfo, err := os.Stat(path)
 	if err != nil {
-		panic(err)
+		return nil, errors.New("Unable to open path: " + path + "\n" + err.Error())
 	}
 
 	customwalk := func(path string, d fs.DirEntry, err error) error {
@@ -46,7 +47,7 @@ func getListOfFiles(unknownPath string, recursive bool) []string {
 		} else {
 			files, err := os.ReadDir(path)
 			if err != nil {
-				panic(err)
+				return nil, errors.New("Can't read the directory: " + path + "\n" + err.Error())
 			}
 			for _, file := range files {
 				if !file.IsDir() && validFileByExtension(file.Name()) {
@@ -56,7 +57,7 @@ func getListOfFiles(unknownPath string, recursive bool) []string {
 		}
 	} else {
 		if recursive {
-			panic("Can only use --recursive when the path is a directory")
+			return nil, errors.New("Can only use --recursive when the path is a directory")
 		}
 
 		validFileExtension := validFileByExtension(path)
@@ -65,7 +66,7 @@ func getListOfFiles(unknownPath string, recursive bool) []string {
 		}
 	}
 
-	return listOfFiles
+	return listOfFiles, nil
 }
 
 func sortListOfFiles(sortBy string, files []string) {
@@ -84,13 +85,11 @@ func sortListOfFiles(sortBy string, files []string) {
 			j := rand.Intn(i + 1)
 			files[i], files[j] = files[j], files[i]
 		}
-
-	default:
-		panic("The only --sort options are 'filename', 'natural', and 'random'")
 	}
+
 }
 
-func LoadFiles(arguments arguments.Arguments) []string {
+func LoadFiles(arguments arguments.Arguments) ([]string, error) {
 	for _, fileExtension := range validFileExtensions {
 		validFileExtensionsSet[fileExtension] = true
 	}
@@ -99,17 +98,24 @@ func LoadFiles(arguments arguments.Arguments) []string {
 	if len(arguments.Path) == 0 {
 		workingDirectory, err := os.Getwd()
 		if err != nil {
-			panic("Unable to get the current working directory. You should specify a working directory at the end of your cli arguments. See rayimg -h for more info. Error: " + err.Error())
+			return nil, errors.New("Unable to get the current working directory. You should specify a working directory at the end of your cli arguments. See rayimg -h for more info. Error: " + err.Error())
 		}
-		listOfFiles = getListOfFiles(workingDirectory, arguments.Recursive)
+		listOfFiles, err = getListOfFiles(workingDirectory, arguments.Recursive)
+		if err != nil {
+			return nil, errors.New(err.Error())
+		}
 	} else {
 		for _, path := range arguments.Path {
-			listOfFiles = append(listOfFiles, getListOfFiles(path, arguments.Recursive)...)
+			moreFiles, err := getListOfFiles(path, arguments.Recursive)
+			if err != nil {
+				return nil, errors.New(err.Error())
+			}
+			listOfFiles = append(listOfFiles, moreFiles...)
 		}
 	}
 
 	if len(listOfFiles) == 0 {
-		panic("Could not find any files with the following formats: " + strings.Join(validFileExtensions, ", "))
+		return nil, errors.New("Could not find any files with the following formats: " + strings.Join(validFileExtensions, ", "))
 	}
 
 	fmt.Println("Found pictures to display: ", len(listOfFiles))
@@ -122,5 +128,5 @@ func LoadFiles(arguments arguments.Arguments) []string {
 		}
 	}
 
-	return listOfFiles
+	return listOfFiles, nil
 }
