@@ -6,9 +6,11 @@ import (
 	"image/color"
 	"math"
 	"os"
+	"strconv"
 
 	"github.com/JarvyJ/rayimg/internal/arguments"
 	"github.com/JarvyJ/rayimg/internal/fileloader"
+	"github.com/JarvyJ/rayimg/internal/font"
 	"github.com/JarvyJ/rayimg/internal/imageloader"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -24,19 +26,6 @@ func init() {
 	flag.Float64Var(&args.Duration, "duration", 0, "duration to display each image for a slideshow (`0` for always - default 0)")
 	flag.Float64Var(&args.TransitionDuration, "transition-duration", 0, "length of the transition in seconds during a slideshow")
 	flag.BoolVar(&args.ListFiles, "list", false, "display filepaths on terminal that will be displayed (mostly for debugging)")
-}
-
-func createTextureFromImage(texture *rl.Texture2D) (rl.Vector2, float32) {
-	// Create rl.Image from Go image.Image and create texture
-	rl.SetTextureFilter(*texture, rl.FilterBilinear)
-
-	scale := float32(math.Min(float64(rl.GetScreenWidth())/float64(texture.Width), float64(rl.GetScreenHeight())/float64(texture.Height)))
-
-	position := rl.Vector2{}
-	position.X = float32(rl.GetScreenWidth()/2) - (float32(texture.Width/2) * scale)
-	position.Y = float32(rl.GetScreenHeight()/2) - (float32(texture.Height/2) * scale)
-
-	return position, scale
 }
 
 func main() {
@@ -55,39 +44,57 @@ func main() {
 
 	args.Path = flag.Args()
 
-	arguments.LoadIniFile(&args)
+	err := arguments.LoadIniFile(&args)
+	if err != nil {
+		displayError(err.Error())
+	}
 
 	switch args.Display {
 	case "none":
 	case "filename":
 	case "caption":
 	default:
-		panic("The only --display options are 'none', 'filename', or 'caption'")
+		displayError("The only --display options are \"none\", \"filename\", or \"caption\".\nDisplay is currently: \"" + args.Display + "\"")
 	}
 
-	if args.TransitionDuration > float64(0) && args.Duration <= 0 {
-		panic("--transition-duration can only be used when --duration is also set for slideshow purposes")
+	switch args.Sort {
+	case "filename":
+	case "natural":
+	case "random":
+	default:
+		displayError("The only --sort options are \"filename\", \"natural\", and \"random\"\nSort is currently: \"" + args.Sort + "\"")
 	}
 
 	if args.TransitionDuration < float64(0) {
-		panic("--transition-duration must be positive")
+		displayError("--transition-duration must be positive\nTransitionDuration is currently: " + strconv.FormatFloat(args.TransitionDuration, 'g', -1, 64))
+	}
+
+	if args.TransitionDuration > float64(0) && args.Duration == 0 {
+		displayError("--transition-duration can only be used when --duration is also set for slideshow purposes")
 	}
 
 	if args.Duration < float64(0) {
-		panic("--duration must be positive")
+		displayError("--duration must be positive\nDuration is currently: " + strconv.FormatFloat(args.Duration, 'g', -1, 64))
 	}
 
-	screenWidth, screenHeight := getScreenResolution()
+	screenWidth, screenHeight, err := getScreenResolution()
+	if err != nil {
+		displayError(err.Error())
+	}
 	fontSize := 72
 
-	listOfFiles := fileloader.LoadFiles(args)
+	listOfFiles, err := fileloader.LoadFiles(args)
+	if err != nil {
+		displayError(err.Error())
+	}
 	imageLoader := imageloader.New(listOfFiles, screenWidth, screenHeight)
 
 	rl.SetTraceLogLevel(rl.LogWarning)
 	rl.SetConfigFlags(rl.FlagVsyncHint)
 	rl.InitWindow(screenWidth, screenHeight, "rayimg - Image Viewer")
 
-	font := rl.LoadFontEx("NotoSansDisplay-VariableFont_wdth,wght.ttf", int32(fontSize), nil)
+	// font := rl.LoadFontEx("NotoSansDisplay-VariableFont_wdth,wght.ttf", int32(fontSize), nil)
+	font := font.LoadFont()
 	fontPosition := rl.NewVector2(20, float32(screenHeight)-float32(fontSize)-10)
 	rl.SetTextureFilter(font.Texture, rl.FilterBilinear)
 
@@ -117,6 +124,7 @@ func main() {
 		if args.Display == "none" {
 			return
 		}
+
 		switch args.Display {
 		case "filename":
 			rl.DrawRectangleGradientV(0, int32(fontPosition.Y)-int32(fontSize), screenWidth, int32(fontSize)*2+20, color.RGBA{0, 0, 0, 0}, color.RGBA{0, 0, 0, 192})
@@ -244,4 +252,38 @@ func main() {
 	}
 
 	rl.CloseWindow()
+}
+
+func createTextureFromImage(texture *rl.Texture2D) (rl.Vector2, float32) {
+	// Create rl.Image from Go image.Image and create texture
+	rl.SetTextureFilter(*texture, rl.FilterBilinear)
+
+	scale := float32(math.Min(float64(rl.GetScreenWidth())/float64(texture.Width), float64(rl.GetScreenHeight())/float64(texture.Height)))
+
+	position := rl.Vector2{}
+	position.X = float32(rl.GetScreenWidth()/2) - (float32(texture.Width/2) * scale)
+	position.Y = float32(rl.GetScreenHeight()/2) - (float32(texture.Height/2) * scale)
+
+	return position, scale
+}
+
+func displayError(errorMessage string) {
+	fmt.Println(errorMessage)
+	_, displayError := os.LookupEnv("DISPLAY_ERROR")
+	if displayError {
+		if !rl.IsWindowReady() {
+			rl.SetTraceLogLevel(rl.LogWarning)
+			rl.SetConfigFlags(rl.FlagVsyncHint)
+			rl.InitWindow(0, 0, "rayimg - error")
+		}
+		font := font.LoadFont()
+		fontPosition := rl.NewVector2(10, 10)
+		for !rl.WindowShouldClose() {
+			rl.BeginDrawing()
+			rl.ClearBackground(rl.Black)
+			rl.DrawTextEx(font, errorMessage, fontPosition, float32(font.BaseSize), 0, rl.RayWhite)
+			rl.EndDrawing()
+		}
+	}
+	os.Exit(1)
 }

@@ -1,6 +1,7 @@
 package arguments
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -27,18 +28,18 @@ type IniSettings struct {
 	TransitionDuration float64
 }
 
-func LoadIniFile(args *Arguments) {
+func LoadIniFile(args *Arguments) error {
 	if len(args.Path) > 1 {
 		for _, path := range args.Path {
 			fileInfo, err := os.Stat(path)
 			if err != nil {
-				panic(err)
+				return errors.New("The path " + path + " is not found\n" + err.Error())
 			}
 			if fileInfo.IsDir() {
 				iniLocation := filepath.Join(path, slideSettingsFile)
 				if _, err := os.Stat(iniLocation); err == nil {
-					fmt.Println("WARNING: Can't load slide_settings.ini if multiple directories passed in")
-					return
+					fmt.Println("WARNING: Can't load slide_settings.ini when multiple directories passed in")
+					return nil
 				}
 			}
 		}
@@ -48,7 +49,7 @@ func LoadIniFile(args *Arguments) {
 	directoryToLoad, err := os.Getwd()
 	if err != nil {
 		fmt.Println("WARNING: Cannot get current directory. Unable to check for and load slide_settings.ini: " + err.Error())
-		return
+		return nil
 	}
 	if len(args.Path) == 1 {
 		directoryToLoad = args.Path[0]
@@ -60,7 +61,10 @@ func LoadIniFile(args *Arguments) {
 		// using toml to decode ini, probably not the best look.
 		// but an ini file will just open on Windows/Linux for easy editing
 		// also, there's only 5 settings here. I think we'll be fine (for now)
-		toml.DecodeFile(iniLocation, &iniSettings)
+		_, err = toml.DecodeFile(iniLocation, &iniSettings)
+		if err != nil {
+			return errors.New("Error loading " + iniLocation + ". Ensure strings are double quoted.\n" + err.Error())
+		}
 		fmt.Println("Loading settings from ini file: ", iniLocation)
 
 		flagset := make(map[string]bool)
@@ -87,4 +91,5 @@ func LoadIniFile(args *Arguments) {
 			args.TransitionDuration = iniSettings.TransitionDuration
 		}
 	}
+	return nil
 }

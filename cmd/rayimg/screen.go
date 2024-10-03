@@ -2,6 +2,6 @@
 
 package main
 
-func getScreenResolution() (int32, int32) {
-	return 1920, 1080
+func getScreenResolution() (int32, int32, error) {
+	return 1920, 1080, nil
 }

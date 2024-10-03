@@ -94,7 +94,7 @@ func loadImageByType(imageLoader *ImageLoader, currentFile string, extension str
 	}
 
 	texture := rl.LoadTextureFromImage(image)
-	if shouldCache {
+	if imageLoader.cacheImages && shouldCache {
 		cacheDirectory, cacheFile := getCacheFileLocation(imageLoader.cacheDirectory, currentFile)
 		cacheImage(image, cacheDirectory, cacheFile)
 	}
