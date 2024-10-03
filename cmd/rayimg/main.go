@@ -274,7 +274,7 @@ func displayError(errorMessage string) {
 		if !rl.IsWindowReady() {
 			rl.SetTraceLogLevel(rl.LogWarning)
 			rl.SetConfigFlags(rl.FlagVsyncHint)
-			rl.InitWindow(1920, 1080, "rayimg - error")
+			rl.InitWindow(0, 0, "rayimg - error")
 		}
 		font := font.LoadFont()
 		fontPosition := rl.NewVector2(10, 10)

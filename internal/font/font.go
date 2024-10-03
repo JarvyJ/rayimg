@@ -1,5 +1,6 @@
 package font
 
+// this relative include feels wrong, but will work locally and in buildroot. If there's a better way, lmk!
 /*
 #include "../../vendor/github.com/gen2brain/raylib-go/raylib/raylib.h"
 #include "NotoSansDisplay.h"
