@@ -6,9 +6,11 @@ import (
 	"image/color"
 	"math"
 	"os"
+	"strconv"
 
 	"github.com/JarvyJ/rayimg/internal/arguments"
 	"github.com/JarvyJ/rayimg/internal/fileloader"
+	"github.com/JarvyJ/rayimg/internal/font"
 	"github.com/JarvyJ/rayimg/internal/imageloader"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -52,7 +54,7 @@ func main() {
 	case "filename":
 	case "caption":
 	default:
-		displayError("The only --display options are \"none\", \"filename\", or \"caption\"")
+		displayError("The only --display options are \"none\", \"filename\", or \"caption\".\nDisplay is currently: \"" + args.Display + "\"")
 	}
 
 	switch args.Sort {
@@ -60,11 +62,11 @@ func main() {
 	case "natural":
 	case "random":
 	default:
-		displayError("The only --sort options are \"filename\", \"natural\", and \"random\"")
+		displayError("The only --sort options are \"filename\", \"natural\", and \"random\"\nSort is currently: \"" + args.Sort + "\"")
 	}
 
 	if args.TransitionDuration < float64(0) {
-		displayError("--transition-duration must be positive")
+		displayError("--transition-duration must be positive\nTransitionDuration is currently: " + strconv.FormatFloat(args.TransitionDuration, 'g', -1, 64))
 	}
 
 	if args.TransitionDuration > float64(0) && args.Duration == 0 {
@@ -72,7 +74,7 @@ func main() {
 	}
 
 	if args.Duration < float64(0) {
-		displayError("--duration must be positive")
+		displayError("--duration must be positive\nDuration is currently: " + strconv.FormatFloat(args.Duration, 'g', -1, 64))
 	}
 
 	screenWidth, screenHeight, err := getScreenResolution()
@@ -91,7 +93,8 @@ func main() {
 	rl.SetConfigFlags(rl.FlagVsyncHint)
 	rl.InitWindow(screenWidth, screenHeight, "rayimg - Image Viewer")
 
-	font := rl.LoadFontEx("NotoSansDisplay-VariableFont_wdth,wght.ttf", int32(fontSize), nil)
+	// font := rl.LoadFontEx("NotoSansDisplay-VariableFont_wdth,wght.ttf", int32(fontSize), nil)
+	font := font.LoadFont()
 	fontPosition := rl.NewVector2(20, float32(screenHeight)-float32(fontSize)-10)
 	rl.SetTextureFilter(font.Texture, rl.FilterBilinear)
 
@@ -262,4 +265,25 @@ func createTextureFromImage(texture *rl.Texture2D) (rl.Vector2, float32) {
 	position.Y = float32(rl.GetScreenHeight()/2) - (float32(texture.Height/2) * scale)
 
 	return position, scale
+}
+
+func displayError(errorMessage string) {
+	fmt.Println(errorMessage)
+	_, displayError := os.LookupEnv("DISPLAY_ERROR")
+	if displayError {
+		if !rl.IsWindowReady() {
+			rl.SetTraceLogLevel(rl.LogWarning)
+			rl.SetConfigFlags(rl.FlagVsyncHint)
+			rl.InitWindow(1920, 1080, "rayimg - error")
+		}
+		font := font.LoadFont()
+		fontPosition := rl.NewVector2(10, 10)
+		for !rl.WindowShouldClose() {
+			rl.BeginDrawing()
+			rl.ClearBackground(rl.Black)
+			rl.DrawTextEx(font, errorMessage, fontPosition, float32(font.BaseSize), 0, rl.RayWhite)
+			rl.EndDrawing()
+		}
+	}
+	os.Exit(1)
 }

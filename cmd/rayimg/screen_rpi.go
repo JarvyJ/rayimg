@@ -4,7 +4,6 @@ package main
 
 import (
 	"errors"
-	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -45,19 +44,4 @@ func getScreenResolution() (int32, int32, error) {
 		return _, _, errors.New("Unable to determine resolution from 'fbset -s'. Is there no mode line?")
 	}
 	return parsefbSet(string(fullOuput)), nil
-}
-
-func displayError(errorMessage string) {
-	if !rl.IsWindowReady() {
-		rl.InitWindow(1920, 1080, "rayimg - error")
-	}
-	font := rl.LoadFontEx("NotoSansDisplay-VariableFont_wdth,wght.ttf", int32(64), nil)
-	fontPosition := rl.NewVector2(10, 10)
-	for !rl.WindowShouldClose() {
-		rl.BeginDrawing()
-		rl.ClearBackground(rl.Black)
-		rl.DrawTextEx(font, errorMessage, fontPosition, float32(font.BaseSize), 0, rl.RayWhite)
-		rl.EndDrawing()
-	}
-	os.Exit(1)
 }
