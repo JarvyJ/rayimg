@@ -1,11 +1,11 @@
 # rayimg
 
-rayimg is a lightweight image viewer designed to run on Raspberry Pis. It has a slideshow mode and displays via the Direct Rendering Manager (DRM) on a Raspberry Pi, so X/Wayland are not needed - this makes it nice to run on a lightweight OS! Check out my other project [PiSlide OS](https://github.com/JarvyJ/pislide-os) if interested. It supports many image formats, including more modern ones: JPG, PNG, GIF (animated!), WEBP, AVIF, JXL, HEIF, BMP, TIFF, and QOI.
+rayimg is a lightweight image viewer designed to run on Raspberry Pis. It has a slideshow mode and displays via the Direct Rendering Manager (DRM) on a Raspberry Pi, so X/Wayland are not needed - this makes it nice to run on a lightweight OS! Check out my other project [PiSlide OS](https://github.com/JarvyJ/pislide-os) if interested. It supports many image formats, including more modern ones: JPG, PNG, GIF (animated!), WEBP, AVIF, JXL, HEIF, HEIC, SVG, BMP, TIFF, and QOI.
 
 It has been built and tested on a Pi 0W, Pi 3, and Pi 4.
 
 ## Installation
-rayimg is _not currently available_ as a binary. It's mostly created to be used in PiSlide OS. I might explore looking into how best to distribute it, for those that want a simpler option. You can always build it from source on the Pi of your choosing!
+rayimg is _not currently available_ as a binary. It's mostly created to be used in PiSlide OS. I might explore looking into how best to distribute it. You can always build it from source on the Pi of your choosing!
 
 ## Features
 - Modern and common image formats!
