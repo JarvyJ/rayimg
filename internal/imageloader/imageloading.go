@@ -72,6 +72,8 @@ func loadImageByType(imageLoader *ImageLoader, currentFile string, extension str
 	var shouldCache bool
 	var err error
 
+	loadedViaRaylib := false
+
 	switch strings.ToLower(extension) {
 	case "jpg":
 		fallthrough
@@ -83,6 +85,7 @@ func loadImageByType(imageLoader *ImageLoader, currentFile string, extension str
 		fallthrough
 	case "qoi":
 		image, shouldCache = loadRaylib(currentFile, imageLoader)
+		loadedViaRaylib = true
 		// TODO: get raylib error?
 
 	default:
@@ -97,6 +100,10 @@ func loadImageByType(imageLoader *ImageLoader, currentFile string, extension str
 	if imageLoader.cacheImages && shouldCache {
 		cacheDirectory, cacheFile := getCacheFileLocation(imageLoader.cacheDirectory, currentFile)
 		cacheImage(image, cacheDirectory, cacheFile)
+	}
+	// govips unloads its file in memory, but raylib needs the explicit call
+	if loadedViaRaylib {
+		rl.UnloadImage(image)
 	}
 	return &texture, nil
 }
