@@ -81,7 +81,6 @@ func main() {
 	if err != nil {
 		displayError(err.Error())
 	}
-	fontSize := 72
 
 	listOfFiles, err := fileloader.LoadFiles(args)
 	if err != nil {
@@ -89,12 +88,14 @@ func main() {
 	}
 	imageLoader := imageloader.New(listOfFiles, screenWidth, screenHeight)
 
+	// i'm avoiding intializing the screen until, so if there are any errors, you don't get a flash of a window
 	rl.SetTraceLogLevel(rl.LogWarning)
 	rl.SetConfigFlags(rl.FlagVsyncHint)
 	rl.InitWindow(screenWidth, screenHeight, "rayimg - Image Viewer")
 
 	// font := rl.LoadFontEx("NotoSansDisplay-VariableFont_wdth,wght.ttf", int32(fontSize), nil)
 	font := font.LoadFont()
+	fontSize := 72
 	fontPosition := rl.NewVector2(20, float32(screenHeight)-float32(fontSize)-10)
 	rl.SetTextureFilter(font.Texture, rl.FilterBilinear)
 
@@ -274,7 +275,12 @@ func displayError(errorMessage string) {
 		if !rl.IsWindowReady() {
 			rl.SetTraceLogLevel(rl.LogWarning)
 			rl.SetConfigFlags(rl.FlagVsyncHint)
-			rl.InitWindow(0, 0, "rayimg - error")
+			screenWidth, screenHeight, err := getScreenResolution()
+			if err != nil {
+				rl.InitWindow(0, 0, "rayimg - error")
+			} else {
+				rl.InitWindow(screenWidth, screenHeight, "rayimg - error")
+			}
 		}
 		font := font.LoadFont()
 		fontPosition := rl.NewVector2(10, 10)
