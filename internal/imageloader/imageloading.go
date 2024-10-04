@@ -88,6 +88,9 @@ func loadImageByType(imageLoader *ImageLoader, currentFile string, extension str
 		loadedViaRaylib = true
 		// TODO: get raylib error?
 
+	case "svg":
+		image, shouldCache, err = loadSvg(currentFile, imageLoader)
+
 	default:
 		image, shouldCache, err = loadVips(currentFile, imageLoader)
 		if err != nil {
@@ -131,7 +134,8 @@ func loadVips(filename string, imageLoader *ImageLoader) (*rl.Image, bool, error
 		return nil, false, err
 	}
 
-	// needed for rpi < 4 mostly. Not sure what image size an RPI 4 can technically support
+	// needed for rpi < 4 mostly. Not sure what texture size an RPI 4 can technically support,
+	// but reducing it to framebuffer width/height will always be safest
 	width := imageRef.Width()
 	height := imageRef.Height()
 	maxWidth := imageLoader.screenWidth
@@ -145,6 +149,39 @@ func loadVips(filename string, imageLoader *ImageLoader) (*rl.Image, bool, error
 		saveCachedImage = true
 	}
 
+	image, err := imageRefToRlImage(imageRef)
+	if err != nil {
+		return nil, false, err
+	}
+	return image, saveCachedImage, nil
+
+}
+
+func imageRefToRlImage(imageRef *vips.ImageRef) (*rl.Image, error) {
+	if imageRef.ColorSpace() != vips.InterpretationSRGB {
+		err := imageRef.ToColorSpace(vips.InterpretationSRGB)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	imageBytes, err := imageRef.ToBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	var image *rl.Image
+
+	if imageRef.HasAlpha() {
+		image = rl.NewImage(imageBytes, int32(imageRef.Width()), int32(imageRef.Height()), 1, rl.UncompressedR8g8b8a8)
+	} else {
+		image = rl.NewImage(imageBytes, int32(imageRef.Width()), int32(imageRef.Height()), 1, rl.UncompressedR8g8b8)
+	}
+	return image, nil
+}
+
+func loadSvg(filename string, imageLoader *ImageLoader) (*rl.Image, bool, error) {
+	imageRef, err := vips.NewThumbnailFromFile(filename, int(imageLoader.screenWidth), int(imageLoader.screenHeight), vips.InterestingNone)
 	if imageRef.ColorSpace() != vips.InterpretationSRGB {
 		err = imageRef.ToColorSpace(vips.InterpretationSRGB)
 		if err != nil {
@@ -152,18 +189,11 @@ func loadVips(filename string, imageLoader *ImageLoader) (*rl.Image, bool, error
 		}
 	}
 
-	imageBytes, err := imageRef.ToBytes()
+	image, err := imageRefToRlImage(imageRef)
 	if err != nil {
 		return nil, false, err
 	}
-
-	var image *rl.Image
-
-	if imageRef.HasAlpha() {
-		image = rl.NewImage(imageBytes, int32(imageRef.Width()), int32(imageRef.Height()), 1, rl.UncompressedR8g8b8a8)
-	}
-	image = rl.NewImage(imageBytes, int32(imageRef.Width()), int32(imageRef.Height()), 1, rl.UncompressedR8g8b8)
-	return image, saveCachedImage, nil
+	return image, false, nil
 }
 
 func getCacheFileLocation(cacheDirectory string, filename string) (string, string) {
