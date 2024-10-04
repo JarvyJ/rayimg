@@ -36,12 +36,13 @@ func parsefbSet(fbsetOutput string) (int32, int32) {
 func getScreenResolution() (int32, int32, error) {
 	path, err := getfbsetPath()
 	if err != nil {
-		return _, _, errors.New("Unable to find command fbset, can't determine resolution")
+		return 0, 0, errors.New("Unable to find command fbset, can't determine resolution")
 	}
 	command := exec.Command(path, "-s")
 	fullOuput, err := command.CombinedOutput()
 	if err != nil {
-		return _, _, errors.New("Unable to determine resolution from 'fbset -s'. Is there no mode line?")
+		return 0, 0, errors.New("Unable to determine resolution from 'fbset -s'. Is there no mode line?")
 	}
-	return parsefbSet(string(fullOuput)), nil
+	width, height := parsefbSet(string(fullOuput))
+	return width, height, nil
 }
