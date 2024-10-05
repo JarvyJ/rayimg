@@ -12,7 +12,7 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-func getImage(imageLoader *ImageLoader, index int) *RayImgImage {
+func (imageLoader *ImageLoader) getImage(index int) *RayImgImage {
 	// unlikely, but could happen if there are a lot of corrupt images...
 	if index >= len(imageLoader.listOfFiles) {
 		index = 0
@@ -22,8 +22,8 @@ func getImage(imageLoader *ImageLoader, index int) *RayImgImage {
 	currentFile := imageLoader.listOfFiles[index]
 	if _, err := os.Stat(currentFile); errors.Is(err, os.ErrNotExist) {
 		fmt.Println("WARNING: File does not exist", currentFile, ". Skipping for now - error: ", err.Error())
-		deleteImageAtIndex(imageLoader, index)
-		return getImage(imageLoader, index)
+		imageLoader.deleteImageAtIndex(index)
+		return imageLoader.getImage(index)
 	}
 
 	extension := strings.ToLower(currentFile[strings.LastIndex(currentFile, ".")+1:])
@@ -34,23 +34,23 @@ func getImage(imageLoader *ImageLoader, index int) *RayImgImage {
 		r, err := os.Open(currentFile)
 		if err != nil {
 			fmt.Println("WARNING: Unable to open file", currentFile, ". Skipping for now - error: ", err.Error())
-			deleteImageAtIndex(imageLoader, index)
-			return getImage(imageLoader, index)
+			imageLoader.deleteImageAtIndex(index)
+			return imageLoader.getImage(index)
 		}
 		defer r.Close()
 
 		err = loadGif(r, currentFile, imageData)
 		if err != nil {
 			fmt.Println("WARNING: Unable to decode image", currentFile, ". Skipping for now - error: ", err.Error())
-			deleteImageAtIndex(imageLoader, index)
-			return getImage(imageLoader, index)
+			imageLoader.deleteImageAtIndex(index)
+			return imageLoader.getImage(index)
 		}
 	} else {
-		texture, err := loadImageByType(imageLoader, currentFile, extension)
+		texture, err := imageLoader.loadImageByType(currentFile, extension)
 		if err != nil {
 			fmt.Println(err)
-			deleteImageAtIndex(imageLoader, index)
-			return getImage(imageLoader, index)
+			imageLoader.deleteImageAtIndex(index)
+			return imageLoader.getImage(index)
 		}
 		imageData.ImageData = texture
 	}
@@ -58,7 +58,7 @@ func getImage(imageLoader *ImageLoader, index int) *RayImgImage {
 	return imageData
 }
 
-func loadImageByType(imageLoader *ImageLoader, currentFile string, extension string) (*rl.Texture2D, error) {
+func (imageLoader *ImageLoader) loadImageByType(currentFile string, extension string) (*rl.Texture2D, error) {
 
 	if imageLoader.cacheImages {
 		_, cacheFile := getCacheFileLocation(imageLoader.cacheDirectory, currentFile)
@@ -84,15 +84,15 @@ func loadImageByType(imageLoader *ImageLoader, currentFile string, extension str
 	case "bmp":
 		fallthrough
 	case "qoi":
-		image, shouldCache = loadRaylib(currentFile, imageLoader)
+		image, shouldCache = imageLoader.loadRaylib(currentFile)
 		loadedViaRaylib = true
 		// TODO: get raylib error?
 
 	case "svg":
-		image, shouldCache, err = loadSvg(currentFile, imageLoader)
+		image, shouldCache, err = imageLoader.loadSvg(currentFile)
 
 	default:
-		image, shouldCache, err = loadVips(currentFile, imageLoader)
+		image, shouldCache, err = imageLoader.loadVips(currentFile)
 		if err != nil {
 			errorString := "WARNING: Unable to open image " + currentFile + ". Skipping for now - error: " + err.Error()
 			return nil, errors.New(errorString)
@@ -111,7 +111,7 @@ func loadImageByType(imageLoader *ImageLoader, currentFile string, extension str
 	return &texture, nil
 }
 
-func loadRaylib(filename string, imageLoader *ImageLoader) (*rl.Image, bool) {
+func (imageLoader *ImageLoader) loadRaylib(filename string) (*rl.Image, bool) {
 	image := rl.LoadImage(filename)
 	width := image.Width
 	height := image.Height
@@ -128,7 +128,7 @@ func loadRaylib(filename string, imageLoader *ImageLoader) (*rl.Image, bool) {
 	return image, false
 }
 
-func loadVips(filename string, imageLoader *ImageLoader) (*rl.Image, bool, error) {
+func (imageLoader *ImageLoader) loadVips(filename string) (*rl.Image, bool, error) {
 	imageRef, err := vips.NewImageFromFile(filename)
 	if err != nil {
 		return nil, false, err
@@ -177,10 +177,11 @@ func imageRefToRlImage(imageRef *vips.ImageRef) (*rl.Image, error) {
 	} else {
 		image = rl.NewImage(imageBytes, int32(imageRef.Width()), int32(imageRef.Height()), 1, rl.UncompressedR8g8b8)
 	}
+	imageRef.Close()
 	return image, nil
 }
 
-func loadSvg(filename string, imageLoader *ImageLoader) (*rl.Image, bool, error) {
+func (imageLoader *ImageLoader) loadSvg(filename string) (*rl.Image, bool, error) {
 	imageRef, err := vips.NewThumbnailFromFile(filename, int(imageLoader.screenWidth), int(imageLoader.screenHeight), vips.InterestingNone)
 	if imageRef.ColorSpace() != vips.InterpretationSRGB {
 		err = imageRef.ToColorSpace(vips.InterpretationSRGB)

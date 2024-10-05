@@ -12,6 +12,7 @@ import (
 	"github.com/JarvyJ/rayimg/internal/fileloader"
 	"github.com/JarvyJ/rayimg/internal/font"
 	"github.com/JarvyJ/rayimg/internal/imageloader"
+	"github.com/davidbyttow/govips/v2/vips"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -88,7 +89,14 @@ func main() {
 	}
 	imageLoader := imageloader.New(listOfFiles, screenWidth, screenHeight)
 
-	// i'm avoiding intializing the screen until, so if there are any errors, you don't get a flash of a window
+	vips.LoggingSettings(nil, vips.LogLevelWarning)
+	vipsConfig := vips.Config{}
+	// disable vips cache, we aren't doing/redoing many operations in a row
+	// Also, i've seen rayimg get OOM-killed, so less memory use is better
+	vipsConfig.MaxCacheSize = 0
+	vips.Startup(&vipsConfig)
+
+	// i'm avoiding intializing the screen until now, so if there are any errors, you don't get a flash of a window
 	rl.SetTraceLogLevel(rl.LogWarning)
 	rl.SetConfigFlags(rl.FlagVsyncHint)
 	rl.InitWindow(screenWidth, screenHeight, "rayimg - Image Viewer")
@@ -99,14 +107,14 @@ func main() {
 	fontPosition := rl.NewVector2(20, float32(screenHeight)-float32(fontSize)-10)
 	rl.SetTextureFilter(font.Texture, rl.FilterBilinear)
 
-	img := imageloader.GetCurrentImage(&imageLoader)
+	img := imageLoader.GetCurrentImage()
 	position, scale := createTextureFromImage(img.ImageData)
 
 	var nextImg *imageloader.RayImgImage
 	nextPosition, nextScale := rl.Vector2{}, float32(0)
 
 	if args.TransitionDuration > 0 {
-		nextImg = imageloader.PeekNextImage(&imageLoader)
+		nextImg = imageLoader.PeekNextImage()
 		nextPosition, nextScale = createTextureFromImage(nextImg.ImageData)
 	}
 
@@ -129,13 +137,13 @@ func main() {
 		switch args.Display {
 		case "filename":
 			rl.DrawRectangleGradientV(0, int32(fontPosition.Y)-int32(fontSize), screenWidth, int32(fontSize)*2+20, color.RGBA{0, 0, 0, 0}, color.RGBA{0, 0, 0, 192})
-			rl.DrawTextEx(font, imageloader.GetCurrentFilename(&imageLoader), fontPosition, float32(font.BaseSize), 0, rl.RayWhite)
+			rl.DrawTextEx(font, imageLoader.GetCurrentFilename(), fontPosition, float32(font.BaseSize), 0, rl.RayWhite)
 
 		case "caption":
-			caption := imageloader.GetCurrentCaption(&imageLoader)
+			caption := imageLoader.GetCurrentCaption()
 			if len(caption) > 0 {
 				rl.DrawRectangleGradientV(0, int32(fontPosition.Y)-int32(fontSize), screenWidth, int32(fontSize)*2+20, color.RGBA{0, 0, 0, 0}, color.RGBA{0, 0, 0, 192})
-				rl.DrawTextEx(font, imageloader.GetCurrentCaption(&imageLoader), fontPosition, float32(font.BaseSize), 0, rl.RayWhite)
+				rl.DrawTextEx(font, imageLoader.GetCurrentCaption(), fontPosition, float32(font.BaseSize), 0, rl.RayWhite)
 			}
 		}
 	}
@@ -150,7 +158,7 @@ func main() {
 	var unloadSingleTextureAndDrawNewImage = func() {
 		rl.UnloadTexture(*img.ImageData)
 
-		img = imageloader.GetCurrentImage(&imageLoader)
+		img = imageLoader.GetCurrentImage()
 		position, scale = createTextureFromImage(img.ImageData)
 
 		transitionTime = 0
@@ -169,11 +177,11 @@ func main() {
 	var unloadCurrentTextureAndDrawNewImage = func() {
 		rl.UnloadTexture(*img.ImageData)
 
-		imageloader.IncreaseCurrentIndex(&imageLoader)
+		imageLoader.IncreaseCurrentIndex()
 		img = nextImg
 		position, scale = nextPosition, nextScale
 
-		nextImg = imageloader.PeekNextImage(&imageLoader)
+		nextImg = imageLoader.PeekNextImage()
 		nextPosition, nextScale = createTextureFromImage(nextImg.ImageData)
 
 		transitioning = false
@@ -193,12 +201,12 @@ func main() {
 	for !rl.WindowShouldClose() {
 
 		if rl.IsKeyPressed(rl.KeyRight) {
-			imageloader.IncreaseCurrentIndex(&imageLoader)
+			imageLoader.IncreaseCurrentIndex()
 			unloadSingleTextureAndDrawNewImage()
 		}
 
 		if rl.IsKeyPressed(rl.KeyLeft) {
-			imageloader.DecreaseCurrentIndex(&imageLoader)
+			imageLoader.DecreaseCurrentIndex()
 			unloadSingleTextureAndDrawNewImage()
 		}
 
@@ -212,7 +220,7 @@ func main() {
 		if transitioning {
 			transitionTime = transitionTime + float64(rl.GetFrameTime())
 			if args.TransitionDuration == 0 {
-				imageloader.IncreaseCurrentIndex(&imageLoader)
+				imageLoader.IncreaseCurrentIndex()
 				unloadSingleTextureAndDrawNewImage()
 			} else {
 				opacity := 255.0 * (transitionTime / args.TransitionDuration)
@@ -232,7 +240,7 @@ func main() {
 			// wildest/best/dumbest hack ever
 			// basically make raylib wait the right time each frame in the gif
 			rl.SetTargetFPS(int32(100 / img.GifData.Delay[animationCurrentFrame]))
-			rl.UpdateTexture(*img.ImageData, imageloader.GetGifFrame(img.GifData, animationCurrentFrame))
+			rl.UpdateTexture(*img.ImageData, img.GifData.GetGifFrame(animationCurrentFrame))
 
 			animationCurrentFrame = animationCurrentFrame + 1
 			if animationCurrentFrame >= len(img.GifData.Delay) {
@@ -253,6 +261,8 @@ func main() {
 	}
 
 	rl.CloseWindow()
+
+	vips.Shutdown()
 }
 
 func createTextureFromImage(texture *rl.Texture2D) (rl.Vector2, float32) {

@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/davidbyttow/govips/v2/vips"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -21,7 +20,7 @@ type ImageLoader struct {
 	cacheDirectory string
 }
 
-func New(listOfFiles []string, screenWidth int32, screenHeight int32) ImageLoader {
+func New(listOfFiles []string, screenWidth int32, screenHeight int32) *ImageLoader {
 	imageLoader := ImageLoader{}
 	imageLoader.listOfFiles = listOfFiles
 	imageLoader.currentIndex = 0
@@ -30,11 +29,7 @@ func New(listOfFiles []string, screenWidth int32, screenHeight int32) ImageLoade
 
 	imageLoader.cacheDirectory, imageLoader.cacheImages = os.LookupEnv("CACHE_DIR")
 
-	vips.LoggingSettings(nil, vips.LogLevelWarning)
-	vips.Startup(nil)
-	// replace with finalizer: defer vips.Shutdown()
-
-	return imageLoader
+	return &imageLoader
 }
 
 // a little hacky, but it should work for now.
@@ -45,30 +40,30 @@ type RayImgImage struct {
 	GifData     *GifData
 }
 
-func deleteImageAtIndex(imageLoader *ImageLoader, index int) {
+func (imageLoader *ImageLoader) deleteImageAtIndex(index int) {
 	imageLoader.listOfFiles = slices.Delete(imageLoader.listOfFiles, index, index+1)
 	numberOfFiles := len(imageLoader.listOfFiles)
 	if numberOfFiles == 0 {
 		panic("Could not open any of the found files. See above in log for details. Images potentially corrupt or incompatible formats")
 	}
 	imageLoader.currentIndex = imageLoader.currentIndex - 1
-	IncreaseCurrentIndex(imageLoader)
+	imageLoader.IncreaseCurrentIndex()
 }
 
-func GetCurrentImage(imageLoader *ImageLoader) *RayImgImage {
+func (imageLoader *ImageLoader) GetCurrentImage() *RayImgImage {
 	start := time.Now()
-	rayimage := getImage(imageLoader, imageLoader.currentIndex)
+	rayimage := imageLoader.getImage(imageLoader.currentIndex)
 	fmt.Println("Time to decode: ", time.Now().Sub(start), imageLoader.listOfFiles[imageLoader.currentIndex])
 	return rayimage
 }
 
-func GetCurrentFilename(imageLoader *ImageLoader) string {
+func (imageLoader *ImageLoader) GetCurrentFilename() string {
 	filePath := imageLoader.listOfFiles[imageLoader.currentIndex]
 	splitPath := strings.Split(filePath, "/")
 	return splitPath[len(splitPath)-1]
 }
 
-func GetCurrentCaption(imageLoader *ImageLoader) string {
+func (imageLoader *ImageLoader) GetCurrentCaption() string {
 	filePath := imageLoader.listOfFiles[imageLoader.currentIndex]
 	captionPath := filePath + ".txt"
 	captionData, err := os.ReadFile(captionPath)
@@ -78,7 +73,7 @@ func GetCurrentCaption(imageLoader *ImageLoader) string {
 	return strings.TrimSpace(string(captionData))
 }
 
-func IncreaseCurrentIndex(imageLoader *ImageLoader) {
+func (imageLoader *ImageLoader) IncreaseCurrentIndex() {
 	numberOfFiles := len(imageLoader.listOfFiles)
 	if imageLoader.currentIndex+1 >= numberOfFiles {
 		imageLoader.currentIndex = 0
@@ -87,7 +82,7 @@ func IncreaseCurrentIndex(imageLoader *ImageLoader) {
 	}
 }
 
-func DecreaseCurrentIndex(imageLoader *ImageLoader) {
+func (imageLoader *ImageLoader) DecreaseCurrentIndex() {
 	if imageLoader.currentIndex <= 0 {
 		imageLoader.currentIndex = len(imageLoader.listOfFiles) - 1
 	} else {
@@ -95,22 +90,22 @@ func DecreaseCurrentIndex(imageLoader *ImageLoader) {
 	}
 }
 
-func PeekNextImage(imageLoader *ImageLoader) *RayImgImage {
+func (imageLoader *ImageLoader) PeekNextImage() *RayImgImage {
 	nextImageIndex := imageLoader.currentIndex + 1
 	numberOfFiles := len(imageLoader.listOfFiles)
 	if nextImageIndex >= numberOfFiles {
 		nextImageIndex = 0
 	}
 	start := time.Now()
-	img := getImage(imageLoader, nextImageIndex)
+	img := imageLoader.getImage(nextImageIndex)
 	fmt.Println("Time to decode: ", time.Now().Sub(start), imageLoader.listOfFiles[imageLoader.currentIndex])
 	return img
 }
 
-func PeekPreviousImage(imageLoader *ImageLoader) *RayImgImage {
+func (imageLoader *ImageLoader) PeekPreviousImage() *RayImgImage {
 	previousImageIndex := imageLoader.currentIndex - 1
 	if previousImageIndex <= 0 {
 		previousImageIndex = len(imageLoader.listOfFiles) - 1
 	}
-	return getImage(imageLoader, previousImageIndex)
+	return imageLoader.getImage(previousImageIndex)
 }
