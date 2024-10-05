@@ -31,8 +31,11 @@ func New(listOfFiles []string, screenWidth int32, screenHeight int32) ImageLoade
 	imageLoader.cacheDirectory, imageLoader.cacheImages = os.LookupEnv("CACHE_DIR")
 
 	vips.LoggingSettings(nil, vips.LogLevelWarning)
-	vips.Startup(nil)
-	// replace with finalizer: defer vips.Shutdown()
+	vipsConfig := vips.Config{}
+	// disable vips cache, we aren't doing/redoing many operations in a row
+	// Also, i've seen rayimg get OOM-killed, so less memory use is better
+	vipsConfig.MaxCacheSize = 0
+	vips.Startup(&vipsConfig)
 
 	return imageLoader
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/JarvyJ/rayimg/internal/fileloader"
 	"github.com/JarvyJ/rayimg/internal/font"
 	"github.com/JarvyJ/rayimg/internal/imageloader"
+	"github.com/davidbyttow/govips/v2/vips"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -253,6 +254,8 @@ func main() {
 	}
 
 	rl.CloseWindow()
+
+	vips.Shutdown()
 }
 
 func createTextureFromImage(texture *rl.Texture2D) (rl.Vector2, float32) {

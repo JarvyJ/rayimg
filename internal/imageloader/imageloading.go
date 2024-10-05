@@ -177,6 +177,7 @@ func imageRefToRlImage(imageRef *vips.ImageRef) (*rl.Image, error) {
 	} else {
 		image = rl.NewImage(imageBytes, int32(imageRef.Width()), int32(imageRef.Height()), 1, rl.UncompressedR8g8b8)
 	}
+	imageRef.Close()
 	return image, nil
 }
 

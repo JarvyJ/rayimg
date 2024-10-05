@@ -13,7 +13,7 @@ import (
 	"github.com/JarvyJ/rayimg/internal/arguments"
 )
 
-var validFileExtensions = []string{".jpg", ".png", ".jpeg", ".webp", ".gif", ".avif", ".jxl", ".heif", ".heic", ".svg", ".bmp", ".tiff", ".tif", ".qoi"}
+var validFileExtensions = []string{".jpg", ".png", ".jpeg", ".webp", ".avif", ".jxl", ".heif", ".heic", ".svg", ".bmp", ".tiff", ".tif", ".qoi"}
 var validFileExtensionsSet = make(map[string]bool)
 
 func validFileByExtension(path string) bool {
