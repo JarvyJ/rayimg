@@ -22,7 +22,7 @@ type GifData struct {
 }
 
 func newGifData(r *os.File, currentFile string, img *image.RGBA) *GifData {
-	gifData := &GifData{}
+	gifData := GifData{}
 
 	r.Seek(0, 0)
 	gif, err := gif.DecodeAll(r)
@@ -42,7 +42,7 @@ func newGifData(r *os.File, currentFile string, img *image.RGBA) *GifData {
 	// }
 
 	gifData.Delay = gif.Delay
-	return gifData
+	return &gifData
 }
 
 func loadGif(r *os.File, currentFile string, imageData *RayImgImage) error {
@@ -66,7 +66,7 @@ func loadGif(r *os.File, currentFile string, imageData *RayImgImage) error {
 
 // use previous frame's value if outside rect and continue
 // if the new pixels are transparent, use the previous frame's value
-func GetGifFrame(gifData *GifData, currentFrame int) []color.RGBA {
+func (gifData *GifData) GetGifFrame(currentFrame int) []color.RGBA {
 	if len(gifData.ImagesData[currentFrame]) == 0 {
 		gifData.ImagesData[currentFrame] = make([]color.RGBA, len(gifData.ImagesData[currentFrame-1]))
 		copy(gifData.ImagesData[currentFrame], gifData.ImagesData[currentFrame-1])
