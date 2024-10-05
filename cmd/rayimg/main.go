@@ -89,7 +89,14 @@ func main() {
 	}
 	imageLoader := imageloader.New(listOfFiles, screenWidth, screenHeight)
 
-	// i'm avoiding intializing the screen until, so if there are any errors, you don't get a flash of a window
+	vips.LoggingSettings(nil, vips.LogLevelWarning)
+	vipsConfig := vips.Config{}
+	// disable vips cache, we aren't doing/redoing many operations in a row
+	// Also, i've seen rayimg get OOM-killed, so less memory use is better
+	vipsConfig.MaxCacheSize = 0
+	vips.Startup(&vipsConfig)
+
+	// i'm avoiding intializing the screen until now, so if there are any errors, you don't get a flash of a window
 	rl.SetTraceLogLevel(rl.LogWarning)
 	rl.SetConfigFlags(rl.FlagVsyncHint)
 	rl.InitWindow(screenWidth, screenHeight, "rayimg - Image Viewer")
