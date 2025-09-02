@@ -50,7 +50,7 @@ build = {
    },
    install = {
         bin = {
-            ['rayimg'] = 'build/main.lua'
+            ['rayimg'] = 'bin/rayimg'
         }
     }
 }
