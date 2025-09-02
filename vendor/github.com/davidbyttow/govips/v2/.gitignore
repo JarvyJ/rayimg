@@ -1,5 +1,0 @@
-.DS_Store
-*.failed.*
-.vscode
-.idea
-node_modules/
