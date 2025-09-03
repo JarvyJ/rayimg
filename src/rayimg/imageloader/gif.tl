@@ -1,4 +1,8 @@
 local ffi = require("ffi")
+
+local rl = require("rayimg.raylib")
+local imageinterface = require("rayimg.imageinterface")
+
 ffi.cdef[[
 typedef struct gif_file_tag
 {
@@ -100,8 +104,6 @@ void free( void *ptr );
 void* memcpy( void* dest, const void* src, size_t count );
 ]]
 local animated = ffi.load("./libs/libanimatedgif.so")
-local rl = require("raylib")
-local imageinterface = require("imageinterface")
 
 local record GifData
     is ffi.CData

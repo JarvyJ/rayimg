@@ -1,4 +1,4 @@
-local ImageLoader = require("imageloader.imageloader")
+local ImageLoader = require("rayimg.imageloader.imageloader")
 
 local record ImageHandler
     list_of_files: {string}

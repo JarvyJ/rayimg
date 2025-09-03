@@ -1,4 +1,4 @@
-local ImageLoader = require("imageloader.imageloader")
+local ImageLoader = require("rayimg.imageloader.imageloader")
 
 local ImageHandler = {}
 

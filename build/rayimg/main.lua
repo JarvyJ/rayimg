@@ -1,10 +1,10 @@
-local arguments = require("arguments")
-local get_list_files = require("fileloader")
-local rl = require("raylib")
+local arguments = require("rayimg.arguments")
+local get_list_files = require("rayimg.fileloader")
+local rl = require("rayimg.raylib")
 local vips = require("vips")
-local ImageHandler = require("imageloader.imagehandler")
-local ImageLoader = require("imageloader.imageloader")
-local imageinterface = require("imageinterface")
+local ImageHandler = require("rayimg.imageloader.imagehandler")
+local ImageLoader = require("rayimg.imageloader.imageloader")
+local imageinterface = require("rayimg.imageinterface")
 
 
 vips.cache_set_max(0)

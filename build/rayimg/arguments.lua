@@ -1,6 +1,6 @@
-local argparse = require("lua_libs.argparse")
-local path = require("lua_libs.pl.path")
-local tinytoml = require("libs.tinytoml")
+local argparse = require("rayimg.lua_libs.argparse")
+local path = require("rayimg.lua_libs.pl.path")
+local tinytoml = require("rayimg.libs.tinytoml")
 
 
 

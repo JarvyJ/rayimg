@@ -1,7 +1,7 @@
-local dir = require("lua_libs.pl.dir")
-local path = require("lua_libs.pl.path")
+local dir = require("rayimg.lua_libs.pl.dir")
+local path = require("rayimg.lua_libs.pl.path")
 
-local display_options = require("arguments").display_options
+local display_options = require("rayimg.arguments").display_options
 
 local validFileExtensions = {
    [".avif"] = true,

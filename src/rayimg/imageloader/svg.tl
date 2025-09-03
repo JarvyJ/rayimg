@@ -1,5 +1,5 @@
-local imageinterface = require("imageinterface")
-local rl = require("raylib")
+local imageinterface = require("rayimg.imageinterface")
+local rl = require("rayimg.raylib")
 local vips = require("vips")
 
 local record SvgImage

@@ -1,12 +1,12 @@
-local raylib_image = require("imageloader.raylib_image")
-local vips_image = require("imageloader.vips_image")
-local svg = require("imageloader.svg")
+local raylib_image = require("rayimg.imageloader.raylib_image")
+local vips_image = require("rayimg.imageloader.vips_image")
+local svg = require("rayimg.imageloader.svg")
 
 
-local imageinterface = require("imageinterface")
-local rl = require("raylib")
-local path = require("lua_libs.pl.path")
-local dir = require("lua_libs.pl.dir")
+local imageinterface = require("rayimg.imageinterface")
+local rl = require("rayimg.raylib")
+local path = require("rayimg.lua_libs.pl.path")
+local dir = require("rayimg.lua_libs.pl.dir")
 
 local image_loaders = {
    [".avif"] = vips_image.load_image_and_downsize,

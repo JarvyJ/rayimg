@@ -25,22 +25,22 @@ dependencies = {
 build = {
     type = "builtin",
     modules = {
-        ["rayimg.arguments"] = "build/arguments.lua",
-        ["rayimg.fileloader"] = "build/fileloader.lua",
-        ["rayimg.imageinterface"] = "build/imageinterface.lua",
-        ["rayimg.main"] = "build/main.lua",
-        ["rayimg.raylib"] = "build/raylib.lua",
+        ["rayimg.arguments"] = "build/rayimg/arguments.lua",
+        ["rayimg.fileloader"] = "build/rayimg/fileloader.lua",
+        ["rayimg.imageinterface"] = "build/rayimg/imageinterface.lua",
+        ["rayimg.main"] = "build/rayimg/main.lua",
+        ["rayimg.raylib"] = "build/rayimg/raylib.lua",
 
         -- image loader stuff
-        ["rayimg.imageloader.gif"] = "build/imageloader/gif.lua",
-        ["rayimg.imageloader.imagehandler"] = "build/imageloader/imagehandler.lua",
-        ["rayimg.imageloader.imageloader"] = "build/imageloader/imageloader.lua",
-        ["rayimg.imageloader.raylib_image"] = "build/imageloader/raylib_image.lua",
-        ["rayimg.imageloader.svg"] = "build/imageloader/svg.lua",
-        ["rayimg.imageloader.vips_image"] = "build/imageloader/vips_image.lua",
+        ["rayimg.imageloader.gif"] = "build/rayimg/imageloader/gif.lua",
+        ["rayimg.imageloader.imagehandler"] = "build/rayimg/imageloader/imagehandler.lua",
+        ["rayimg.imageloader.imageloader"] = "build/rayimg/imageloader/imageloader.lua",
+        ["rayimg.imageloader.raylib_image"] = "build/rayimg/imageloader/raylib_image.lua",
+        ["rayimg.imageloader.svg"] = "build/rayimg/imageloader/svg.lua",
+        ["rayimg.imageloader.vips_image"] = "build/rayimg/imageloader/vips_image.lua",
 
         -- teal libs!
-        ["rayimg.libs.tinytoml"] = "build/libs/tinytoml.lua",
+        ["rayimg.libs.tinytoml"] = "build/rayimg/libs/tinytoml.lua",
 
         -- copy in the lua libs directly
         ["rayimg.lua_libs.argparse"] = "lua_libs/argparse.lua",

@@ -1,4 +1,4 @@
-local rl = require("raylib")
+local rl = require("rayimg.raylib")
 local ffi = require("ffi")
 
 
