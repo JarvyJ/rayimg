@@ -119,7 +119,7 @@ typedef enum {
 } PixelFormat;
 
 ]])
-local rl = ffi.load("./libraylib.dylib")
+local rl = ffi.load("raylib")
 
 
 

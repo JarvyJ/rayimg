@@ -1,2 +1,4 @@
 test/
 .DS_Store
+*.dylib
+build/rayimg/lua_libs/

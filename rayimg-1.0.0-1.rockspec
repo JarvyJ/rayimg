@@ -45,6 +45,7 @@ build = {
         -- copy in the lua libs directly
         ["rayimg.lua_libs.argparse"] = "lua_libs/argparse.lua",
         ["rayimg.lua_libs.pl.compat"] = "lua_libs/pl/compat.lua",
+        ["rayimg.lua_libs.pl.dir"] = "lua_libs/pl/dir.lua",
         ["rayimg.lua_libs.pl.path"] = "lua_libs/pl/path.lua",
         ["rayimg.lua_libs.pl.utils"] = "lua_libs/pl/utils.lua",
    },

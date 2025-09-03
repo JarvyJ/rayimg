@@ -142,6 +142,8 @@ local function parse_ini_file(paths)
          end
       end
       return settings
+   else
+      return {}
    end
 end
 
