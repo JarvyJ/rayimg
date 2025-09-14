@@ -24,7 +24,7 @@ local record libffi
     offsetof:   function(CType, string): integer, integer | nil, integer | nil
     istype:     function(CType, any): boolean
     errno:      function(integer | nil): integer
-    string:     function(CData, integer | nil): string
+    string:     function(CData, ?integer): string
     copy:       function(CData, CData, integer)
     copy:       function(CData, string)
     fill:       function(CData, integer, CData)

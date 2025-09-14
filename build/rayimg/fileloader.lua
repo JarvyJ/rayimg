@@ -1,5 +1,5 @@
-local dir = require("rayimg.lua_libs.pl.dir")
-local path = require("rayimg.lua_libs.pl.path")
+local filesystem = require("path.fs")
+local path = require("path")
 
 local display_options = require("rayimg.arguments").display_options
 
@@ -45,25 +45,29 @@ local function get_list_of_files(args)
    for _, filepath in ipairs(args.paths) do
 
       if path.isfile(filepath) then
-         extension = path.extension(filepath)
+         extension = path.suffix(filepath)
          if validFileExtensions[extension] then
-            table.insert(list_of_files, path.abspath(filepath))
+            table.insert(list_of_files, path.abs(filepath))
          end
 
       elseif path.isdir(filepath) then
 
          if args.recursive then
-            for _, file in ipairs(dir.getallfiles(filepath)) do
-               extension = path.extension(file)
-               if validFileExtensions[extension] then
-                  table.insert(list_of_files, path.abspath(file))
+            for filename, file_type in filesystem.scandir(filepath) do
+               if file_type == "file" then
+                  extension = path.suffix(filename)
+                  if validFileExtensions[extension] then
+                     table.insert(list_of_files, path.abs(filename))
+                  end
                end
             end
          else
-            for _, file in ipairs(dir.getfiles(filepath)) do
-               extension = path.extension(file)
-               if validFileExtensions[extension] then
-                  table.insert(list_of_files, path.abspath(file))
+            for filename, file_type in filesystem.dir(filepath) do
+               if file_type == "file" then
+                  extension = path.suffix(filename)
+                  if validFileExtensions[extension] then
+                     table.insert(list_of_files, path.abs(filename))
+                  end
                end
             end
          end

@@ -1,5 +1,5 @@
 local argparse = require("rayimg.lua_libs.argparse")
-local path = require("rayimg.lua_libs.pl.path")
+local path = require("path")
 local tinytoml = require("rayimg.libs.tinytoml")
 
 local enum DisplayOptions
@@ -118,15 +118,14 @@ end
 local function parse_ini_file(paths: {string}): TomlSettings
     if #paths > 1 then
         for _, working_path in ipairs(paths) do
-            local ini_location = path.join(working_path, "slide_settings.ini")
-            if path.isfile(ini_location) then
+            if path.isfile(working_path, "slide_settings.ini") then
                 print("WARNING: Can't load slide_settings.ini when multiple directories passed in")
                 return {}
             end
         end
     end
 
-    local ini_location = path.join(paths[1], "slide_settings.ini")
+    local ini_location = path.abs(paths[1], "slide_settings.ini")
     if path.isfile(ini_location) then
         local settings: TomlSettings = tinytoml.parse(ini_location) as TomlSettings
         for setting, value in pairs(settings as {string:any}) do

@@ -118,6 +118,38 @@ typedef enum {
     PIXELFORMAT_UNCOMPRESSED_R8G8B8A8      // 32 bpp
 } PixelFormat;
 
+// all the filepath stuff
+
+// File path list
+typedef struct FilePathList {
+    unsigned int capacity;          // Filepaths max entries
+    unsigned int count;             // Filepaths entries count
+    char **paths;                   // Filepaths entries
+} FilePathList;
+
+bool FileExists(const char *fileName);                      // Check if file exists
+bool DirectoryExists(const char *dirPath);                  // Check if a directory path exists
+bool IsFileExtension(const char *fileName, const char *ext); // Check file extension (including point: .png, .wav)
+int GetFileLength(const char *fileName);                    // Get file length in bytes (NOTE: GetFileSize() conflicts with windows.h)
+const char *GetFileExtension(const char *fileName);         // Get pointer to extension for a filename string (includes dot: '.png')
+const char *GetFileName(const char *filePath);              // Get pointer to filename for a path string
+const char *GetFileNameWithoutExt(const char *filePath);    // Get filename string without extension (uses static string)
+const char *GetDirectoryPath(const char *filePath);         // Get full path for a given fileName with path (uses static string)
+const char *GetPrevDirectoryPath(const char *dirPath);      // Get previous directory path for a given path (uses static string)
+const char *GetWorkingDirectory(void);                      // Get current working directory (uses static string)
+const char *GetApplicationDirectory(void);                  // Get the directory of the running application (uses static string)
+int MakeDirectory(const char *dirPath);                     // Create directories (including full path requested), returns 0 on success
+bool ChangeDirectory(const char *dir);                      // Change working directory, return true on success
+bool IsPathFile(const char *path);                          // Check if a given path is a file or a directory
+bool IsFileNameValid(const char *fileName);                 // Check if fileName is valid for the platform/OS
+FilePathList LoadDirectoryFiles(const char *dirPath);       // Load directory filepaths
+FilePathList LoadDirectoryFilesEx(const char *basePath, const char *filter, bool scanSubdirs); // Load directory filepaths with extension filtering and recursive directory scan. Use 'DIR' in the filter string to include directories in the result
+void UnloadDirectoryFiles(FilePathList files);              // Unload filepaths
+bool IsFileDropped(void);                                   // Check if a file has been dropped into window
+FilePathList LoadDroppedFiles(void);                        // Load dropped filepaths
+void UnloadDroppedFiles(FilePathList files);                // Unload dropped filepaths
+long GetFileModTime(const char *fileName);                  // Get file modification time (last write time)
+
 ]]
 local rl = ffi.load("raylib")
 
@@ -153,6 +185,13 @@ local record Texture2D
     format: integer
 end
 
+local record FilePathList
+    is ffi.CData
+    capacity: integer
+    count: integer
+    paths: {ffi.CData}
+end
+
 local type PixelFormat = integer
 local type KeyboardKey = integer
 local type TextureFilter = integer
@@ -161,6 +200,7 @@ local record raylib
     Image: Image
     Texture2D: Texture2D
     Vector2: Vector2
+    FilePathList: FilePathList
 
     BLACK: Color
     WHITE: Color
@@ -213,6 +253,29 @@ local record raylib
     DrawTexture: function(texture: Texture2D, posX: integer, posY: integer, tint: Color)
     DrawTextureEx: function(texture: Texture2D, position: Vector2,rotation: number, scale: number, tine: Color)
     SetTextureFilter: function(texture: Texture2D, filter: TextureFilter)
+
+    FileExists: function(fileName: string): boolean
+    DirectoryExists: function(dirPath: string): boolean
+    IsFileExtension: function(fileName: string, ext: string): boolean
+    GetFileLength: function(fileName: string): integer
+    GetFileExtension: function(fileName: string): string
+    GetFileName: function(filePath: string): string
+    GetFileNameWithoutExt: function(filePath: string): string
+    GetDirectoryPath: function(filePath: string): string
+    GetPrevDirectoryPath: function(dirPath: string): string
+    GetWorkingDirectory: function(): string
+    GetApplicationDirectory: function(): string
+    MakeDirectory: function(dirPath: string): integer
+    ChangeDirectory: function(dir: string): boolean
+    IsPathFile: function(path: string): boolean
+    IsFileNameValid: function(fileName: string): boolean
+    LoadDirectoryFiles: function(dirPath: string): FilePathList
+    LoadDirectoryFilesEx: function(basePath: string, filter: string, scanSubdirs: boolean): FilePathList
+    UnloadDirectoryFiles: function(files: FilePathList)
+    IsFileDropped: function(): boolean
+    LoadDroppedFiles: function(): FilePathList
+    UnloadDroppedFiles: function(files: FilePathList)
+    GetFileModTime: function(fileName: string): number
 end
 
 local _color: ffi.CFunction<Color> = ffi.typeof("Color")
