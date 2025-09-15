@@ -1,7 +1,7 @@
 test/
 .DS_Store
 *.dylib
-build/rayimg/lua_libs/
 cache/
 *.png
 *.jpg
+images/

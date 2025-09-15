@@ -5,6 +5,7 @@ local vips = require("vips")
 local ImageHandler = require("rayimg.imageloader.imagehandler")
 local ImageLoader = require("rayimg.imageloader.imageloader")
 local imageinterface = require("rayimg.imageinterface")
+local get_screen_resolution = require("rayimg.screen")
 
 -- use as little app memory as possible
 vips.cache_set_max(0)
@@ -14,8 +15,7 @@ vips.cache_set_max_files(0)
 local args = arguments.get_settings()
 local files = get_list_files(args)
 
-local screen_width = (1920/2) as integer
-local screen_height = (1080/2) as integer
+local screen_width, screen_height = get_screen_resolution()
 
 local image_handler = ImageHandler.new(files, screen_width, screen_height)
 
