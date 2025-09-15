@@ -30,6 +30,7 @@ build = {
         ["rayimg.imageinterface"] = "build/rayimg/imageinterface.lua",
         ["rayimg.main"] = "build/rayimg/main.lua",
         ["rayimg.raylib"] = "build/rayimg/raylib.lua",
+        ["rayimg.screen"] = "build/rayimg/screen.lua",
 
         -- image loader stuff
         ["rayimg.imageloader.gif"] = "build/rayimg/imageloader/gif.lua",

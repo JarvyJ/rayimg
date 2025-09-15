@@ -73,7 +73,7 @@ local function get_list_of_files(args)
          end
 
       else
-         error("Could not determine if path was a file or a directory: " .. filepath)
+         error("The path specified does not appear to be a file nor directory: " .. filepath)
       end
    end
 

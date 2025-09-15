@@ -176,6 +176,13 @@ local record Image
     format: integer
 end
 
+local record Font
+    is ffi.CData
+    baseSize: integer
+    glyphCount: integer
+    glyphPadding: integer
+end
+
 local record Texture2D
    is ffi.CData
     id: integer
@@ -240,8 +247,8 @@ local record raylib
     UnloadImage: function(image: Image)
     ExportImage: function(image: Image, fileName: string): boolean
 
-    LoadFont: function(fileName: string): ffi.CData
-    LoadFontEx: function(fileName: string, fontSize: integer, codepoints?: integer, codepointCount: integer): ffi.CData
+    LoadFont: function(fileName: string): Font
+    LoadFontEx: function(fileName: string, fontSize: integer, codepoints?: integer, codepointCount: integer): Font
     UnloadFont: function(ffi.CData)
     DrawTextEx: function(font: ffi.CData, text: string, position:Vector2, fontSize: number, spacing: number, tine: Color)
     DrawRectangleGradientV: function(posX: integer, posY: integer, width: integer, height: integer, top: Color, bottom: Color)

@@ -14,17 +14,6 @@ local enum SortOptions
     "natural"
  end
 
-local record SlideSettings
-    is argparse.Args
-    recursive: boolean -- false
-    sort: SortOptions -- natural
-    display: DisplayOptions -- none
-    duration: number -- 0
-    transition_duration: number -- 0
-    list: boolean -- false
-    paths: {string} -- .
-end
-
 local record TomlSettings
     Recursive: boolean -- false
     Sort: SortOptions -- natural
@@ -59,7 +48,23 @@ local display_options: {string: boolean} = {
 local sort_options_list = {"filename", "random", "natural"}
 local display_options_list = {"filename", "caption", "none"}
 
-local defaults: SlideSettings = {
+local record arguments
+    record SlideSettings
+        is argparse.Args
+        recursive: boolean -- false
+        sort: SortOptions -- natural
+        display: DisplayOptions -- none
+        duration: number -- 0
+        transition_duration: number -- 0
+        list: boolean -- false
+        paths: {string} -- .
+    end
+    
+    display_options: SlideSettings
+    get_settings: function(): SlideSettings
+end
+
+local defaults: arguments.SlideSettings = {
     recursive = false,
     sort = "natural",
     display = "none",
@@ -69,12 +74,9 @@ local defaults: SlideSettings = {
     paths = {"."}
 }
 
-local record arguments
-    display_options: SlideSettings
-    get_settings: function(): SlideSettings
-end
 
-local function parse_arguments(): SlideSettings, argparse.Parser
+
+local function parse_arguments(): arguments.SlideSettings, argparse.Parser
     local parser = argparse("rayimg", "the commandline image viewer")
 
     -- i don't set defaults here so I can load slide_settings.ini and then overwrite with anything passed in from the cli
@@ -101,7 +103,7 @@ local function parse_arguments(): SlideSettings, argparse.Parser
     parser:argument("paths", "paths to files or directories to display\ndefaults to current directory\nuse arrow keys or 'duration' option to cycle through")
         :args("*")
 
-    local args: SlideSettings = parser:parse()
+    local args: arguments.SlideSettings = parser:parse()
 
     -- we need to do this later
     -- args.duration = convert_to_positive_number(parser, "--duration", args.duration)
@@ -156,7 +158,7 @@ local function convert_to_positive_number(parser: argparse.Parser, name: string,
     return output
 end
 
-function arguments.get_settings(): SlideSettings
+function arguments.get_settings(): arguments.SlideSettings
     local args, parser = parse_arguments()
     args.duration = convert_to_positive_number(parser, "--duration", args.duration)
     args.transition_duration = convert_to_positive_number(parser, "--transition_duration", args.transition_duration)

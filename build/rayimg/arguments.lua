@@ -23,17 +23,6 @@ local tinytoml = require("rayimg.libs.tinytoml")
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 local toml_keys = {
    ["Recursive"] = "boolean",
    ["Sort"] = "string",
@@ -59,6 +48,22 @@ local display_options = {
 local sort_options_list = { "filename", "random", "natural" }
 local display_options_list = { "filename", "caption", "none" }
 
+local arguments = { SlideSettings = {} }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 local defaults = {
    recursive = false,
    sort = "natural",
@@ -68,9 +73,6 @@ local defaults = {
    list = false,
    paths = { "." },
 }
-
-local arguments = {}
-
 
 
 

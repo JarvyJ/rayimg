@@ -12,14 +12,42 @@ vips.cache_set_max(0)
 vips.cache_set_max_mem(0)
 vips.cache_set_max_files(0)
 
-local args = arguments.get_settings()
-local files = get_list_files(args)
-
+-- command cannot fail, since it will default a resolution
 local screen_width, screen_height = get_screen_resolution()
 
-local image_handler = ImageHandler.new(files, screen_width, screen_height)
+local function load_app(): arguments.SlideSettings, ImageHandler
+    local args = arguments.get_settings()
+    local files = get_list_files(args)
+    local image_handler = ImageHandler.new(files, screen_width, screen_height)
 
-rl.init_window(screen_width, screen_height, "rayimg - lua test")
+    return args, image_handler
+end
+
+local function display_error(error_message: string)
+    rl.init_window(screen_width, screen_height, "rayimg - ERROR")
+    local font = rl.LoadFont("NotoSans-Regular.ttf")
+    local font_position = rl.NewVector2(10, 10)
+    local short_error = error_message:match(":%d+%: (.-)\n")
+    while not rl.WindowShouldClose() do
+        rl.BeginDrawing()
+        rl.ClearBackground(rl.BLACK)
+        rl.DrawTextEx(font, short_error, font_position, font.baseSize, 0, rl.RAYWHITE)
+        rl.EndDrawing()
+    end
+end
+
+local ok, args, image_handler = xpcall(load_app, (debug.traceback as function))
+if not ok then
+    local full_error = args as string
+    print(full_error)
+    if os.getenv("DISPLAY_ERROR_ON_SCREEN") then
+        display_error(full_error)
+    end
+    os.exit(1)
+end
+
+-- the rest of the owl!
+rl.init_window(screen_width, screen_height, "rayimg")
 
 local font = rl.LoadFont("NotoSans-Regular.ttf")
 local fontSize = 48
