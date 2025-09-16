@@ -20,6 +20,7 @@ description = {
 
 dependencies = {
     "lua >= 5.1",
+    "lpath == 0.4.0"
 }
 
 build = {
@@ -51,6 +52,7 @@ build = {
         -- the buildroot luarocks eval uses the host luarocks, so "rayimg" which
         -- should be in install.bin ends up with references to file paths on the
         -- host system, which isn't super useful. This at least gets the bin on the system
+        -- TODO: probably move these to source? Need to test buildroot...
         lua = {
             ['rayimg.font'] = 'static/NotoSans-Regular.ttf',
             ['rayimg'] = 'static/rayimg'
