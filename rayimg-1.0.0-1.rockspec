@@ -45,15 +45,15 @@ build = {
 
         -- copy in the lua libs directly
         ["rayimg.lua_libs.argparse"] = "lua_libs/argparse.lua",
-        ["rayimg.lua_libs.pl.compat"] = "lua_libs/pl/compat.lua",
-        ["rayimg.lua_libs.pl.dir"] = "lua_libs/pl/dir.lua",
-        ["rayimg.lua_libs.pl.path"] = "lua_libs/pl/path.lua",
-        ["rayimg.lua_libs.pl.utils"] = "lua_libs/pl/utils.lua",
-   },
-   install = {
-        bin = {
-            ['rayimg'] = 'bin/rayimg'
+    },
+    install = {
+        -- yes, this is a bit of a hack, but it puts the files in the right spot!
+        -- the buildroot luarocks eval uses the host luarocks, so "rayimg" which
+        -- should be in install.bin ends up with references to file paths on the
+        -- host system, which isn't super useful. This at least gets the bin on the system
+        lua = {
+            ['rayimg.font'] = 'static/NotoSans-Regular.ttf',
+            ['rayimg'] = 'static/rayimg'
         }
     }
 }
-
