@@ -7,6 +7,11 @@ local ImageLoader = require("rayimg.imageloader.imageloader")
 local imageinterface = require("rayimg.imageinterface")
 local get_screen_resolution = require("rayimg.screen")
 
+local path = require("path")
+local rayimg_location = package.searchpath("rayimg.main", package.path)
+local rayimg_dir = path.parent(rayimg_location)
+local font_location = path.abs(rayimg_dir, "NotoSans-Regular.ttf")
+
 
 vips.cache_set_max(0)
 vips.cache_set_max_mem(0)
@@ -25,7 +30,7 @@ end
 
 local function display_error(error_message)
    rl.init_window(screen_width, screen_height, "rayimg - ERROR")
-   local font = rl.LoadFont("NotoSans-Regular.ttf")
+   local font = rl.LoadFont(font_location)
    local font_position = rl.NewVector2(10, 10)
    local short_error = error_message:match(":%d+%: (.-)\n")
    while not rl.WindowShouldClose() do
@@ -49,7 +54,7 @@ end
 
 rl.init_window(screen_width, screen_height, "rayimg")
 
-local font = rl.LoadFont("NotoSans-Regular.ttf")
+local font = rl.LoadFont(font_location)
 local fontSize = 48
 local fontPosition = rl.NewVector2(20, screen_height - fontSize - 10)
 
