@@ -48,30 +48,4 @@ Sort = "natural"
 ```
 
 ## How it works
-rayimg uses [raylib](https://www.raylib.com/) for rendering images on-screen, and support for some image formats. The more modern formats are supported via [libvips](https://www.libvips.org/).
-
-## Building on a Pi
-rayimg is written in golang, as as such needs a modern [Go install](https://go.dev/doc/install) (unfortunately, you can't just `apt get` it, the version in the apt repositories are usually out of date).
-
-You also need the following pacakages to build against raylib and libvips:
-```
-sudo apt-get install libdrm-dev libegl1-mesa-dev libgles2-mesa-dev libgbm-dev libvips-dev
-```
-
-From there, on a Raspberry Pi you can cd to the cloned repository and just `go build -tags drm github.com/JarvyJ/rayimg/cmd/rayimg` and a `rayimg` binary will be created.
-
-## Building on other platforms
-rayimg needs the following to build:
-- golang: Go is supported on various platforms and installation instructions can be found on [their site](https://go.dev/doc/install).
-- raylib: raylib is also supported by [multiple platforms](https://www.raylib.com/#supported-platforms)
-- libvips: libvips website includes how to find in on [various platforms](https://www.libvips.org/install.html)
-
-From there, it can be built with go:
-```
-go build github.com/JarvyJ/rayimg/cmd/rayimg
-```
-
-I've done all of my testing on Linux and Raspberry Pis, so I can't quite speak to building it on other platforms.
-
-## Why `vendor`?
-Since this project is pulled into a buildroot build and some of the vendor files include `.c` files, we need to include all of them since they don't get pulled in correctly with `go mod vendor`. I'm currently using [vend](https://github.com/nomad-software/vend) for this. If there's a better way, please feel free to open an issue!
+rayimg uses [raylib](https://www.raylib.com/) for rendering images on-screen, and support for some image formats. The more modern formats are supported via [libvips](https://www.libvips.org/). It's written in Teal and uses LuaJIT's FFI to interact with the shared libraries.
