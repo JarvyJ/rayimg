@@ -1,0 +1,33 @@
+name: Create rockspec
+
+on:
+  push:
+    tags: [ '*.*.*' ]
+
+jobs:
+  create-rockspec:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@main
+
+    - name: Install libreadline
+      run: sudo apt-get install -y libreadline-dev
+
+    - name: Install LuaJIT with hererocks
+      run: |
+        pip install git+https://github.com/luarocks/hererocks
+        hererocks -r^ --luajit @v2.1 lua
+        echo lua/bin >> $GITHUB_PATH
+        
+    - name: Create rock file
+      run: |
+        luarocks pack *.rockspec
+
+    - name: Upload rock
+      uses: actions/upload-artifact@main
+      with:
+        name: luarocks-src-rock
+        path: |
+          *.rock
+        compression-level: 0
