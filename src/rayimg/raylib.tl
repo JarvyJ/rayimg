@@ -181,6 +181,7 @@ local record Font
     baseSize: integer
     glyphCount: integer
     glyphPadding: integer
+    texture: Texture2D
 end
 
 local record Texture2D

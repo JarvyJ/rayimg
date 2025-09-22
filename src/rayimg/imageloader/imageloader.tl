@@ -8,6 +8,8 @@ local rl = require("rayimg.raylib")
 local path = require("path")
 local fs = require("path.fs")
 
+local ROTATION = tonumber(os.getenv("ROTATION")) or 0
+
 local image_loaders: {string:function(string, integer, integer): imageinterface.LoadedImage} = {
     [".avif"] = vips_image.load_image_and_downsize,
     [".bmp"] = raylib_image.load_image_and_downsize,
@@ -31,10 +33,11 @@ local record LoadedTexture
     -- ideally it shouldn't be accessed directly
     image: imageinterface.LoadedImage
     texture: rl.Texture2D
-    position: rl.Vector2
     filename: string
     caption: string
+
     scale: number
+    position: rl.Vector2
 end
 
 local record ImageLoader
@@ -43,8 +46,28 @@ local record ImageLoader
 end
 
 local function calculate_scale_and_position(screen_width: integer, screen_height: integer, texture: rl.Texture2D): number, rl.Vector2
-    local scale = math.min(screen_width/texture.width, screen_height/texture.height)
-    local position = rl.NewVector2( (screen_width/2) - (texture.width/2 * scale), (screen_height/2) - (texture.height/2 * scale))
+    
+    local scale: number
+    local position: rl.Vector2
+
+    if ROTATION == 90 then
+        scale = math.min(screen_height/texture.width, screen_width/texture.height)
+        position = rl.NewVector2( (screen_width/2) + (texture.height/2 * scale), (screen_height/2) - (texture.width/2 * scale))
+
+    elseif ROTATION == 180 then
+        scale = math.min(screen_width/texture.width, screen_height/texture.height)
+        position = rl.NewVector2( (screen_width/2) + (texture.width/2 * scale), (screen_height/2) + (texture.height/2 * scale))
+
+    elseif ROTATION == 270 then
+        scale = math.min(screen_height/texture.width, screen_width/texture.height)
+        position = rl.NewVector2( (screen_width/2) - (texture.height/2 * scale), (screen_height/2) + (texture.width/2 * scale))
+
+    else
+        scale = math.min(screen_width/texture.width, screen_height/texture.height)
+        position = rl.NewVector2( (screen_width/2) - (texture.width/2 * scale), (screen_height/2) - (texture.height/2 * scale))
+
+    end
+
     return scale, position
 end
 
@@ -83,7 +106,11 @@ ImageLoader.load_image = function(filepath: string, screen_width: integer, scree
 
         local file_extension = path.suffix(filepath)
         local start = os.clock()
-        loaded_image = image_loaders[file_extension](filepath, screen_width, screen_height)
+        if ROTATION == 0 or ROTATION == 180 then
+            loaded_image = image_loaders[file_extension](filepath, screen_width, screen_height)
+        elseif ROTATION == 90 or ROTATION == 270 then
+            loaded_image = image_loaders[file_extension](filepath, screen_height, screen_width)
+        end
         print("Time to load image", filepath, (os.clock() - start) * 1000)
         texture = rl.LoadTextureFromImage(loaded_image.image)
         
