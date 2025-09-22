@@ -6,8 +6,10 @@ local ImageHandler = require("rayimg.imageloader.imagehandler")
 local ImageLoader = require("rayimg.imageloader.imageloader")
 local imageinterface = require("rayimg.imageinterface")
 local get_screen_resolution = require("rayimg.screen")
-
 local path = require("path")
+
+local ROTATION = tonumber(os.getenv("ROTATION")) or 0
+
 local rayimg_location = package.searchpath("rayimg.main", package.path)
 local rayimg_dir = path.parent(rayimg_location)
 local font_location = path.abs(rayimg_dir, "NotoSans-Regular.ttf")
@@ -23,6 +25,9 @@ local screen_width, screen_height = get_screen_resolution()
 local function load_app()
    local args = arguments.get_settings()
    local files = get_list_files(args)
+   if not (ROTATION == 0 or ROTATION == 90 or ROTATION == 180 or ROTATION == 270) then
+      error("ROTATION environment variable must be either 0, 90, 180, or 270. It is currently: " .. ROTATION)
+   end
    local image_handler = ImageHandler.new(files, screen_width, screen_height)
 
    return args, image_handler
@@ -32,6 +37,7 @@ local function display_error(error_message)
    rl.init_window(screen_width, screen_height, "rayimg - ERROR")
    local font = rl.LoadFont(font_location)
    local font_position = rl.NewVector2(10, 10)
+   rl.SetTextureFilter(font.texture, rl.FilterBilinear)
    local short_error = error_message:match(":%d+%: (.-)\n")
    while not rl.WindowShouldClose() do
       rl.BeginDrawing()
@@ -57,6 +63,7 @@ rl.init_window(screen_width, screen_height, "rayimg")
 local font = rl.LoadFont(font_location)
 local fontSize = 48
 local fontPosition = rl.NewVector2(20, screen_height - fontSize - 10)
+rl.SetTextureFilter(font.texture, rl.FilterBilinear)
 
 local loaded_texture = image_handler:get_current_image()
 local next_texture
@@ -95,7 +102,7 @@ end
 local function drawSingleImage()
    rl.BeginDrawing()
    rl.ClearBackground(rl.BLACK)
-   rl.DrawTextureEx(loaded_texture.texture, loaded_texture.position, 0, loaded_texture.scale, rl.WHITE)
+   rl.DrawTextureEx(loaded_texture.texture, loaded_texture.position, ROTATION, loaded_texture.scale, rl.WHITE)
    drawText()
    rl.EndDrawing()
 end
@@ -130,8 +137,8 @@ while not rl.WindowShouldClose() do
 
       rl.BeginDrawing()
       rl.ClearBackground(rl.BLACK)
-      rl.DrawTextureEx(loaded_texture.texture, loaded_texture.position, 0, loaded_texture.scale, rl.NewColor(255, 255, 255, 255 - transition_opacity))
-      rl.DrawTextureEx(next_texture.texture, next_texture.position, 0, next_texture.scale, rl.NewColor(255, 255, 255, transition_opacity))
+      rl.DrawTextureEx(loaded_texture.texture, loaded_texture.position, ROTATION, loaded_texture.scale, rl.NewColor(255, 255, 255, 255 - transition_opacity))
+      rl.DrawTextureEx(next_texture.texture, next_texture.position, ROTATION, next_texture.scale, rl.NewColor(255, 255, 255, transition_opacity))
       drawText()
       rl.EndDrawing()
 
